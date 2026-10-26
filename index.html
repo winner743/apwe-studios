@@ -1,1170 +1,674 @@
-```html
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APWE STUDIOS - Web & Game Creator IDE</title>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Phosphor Icons -->
-    <script src="https://unpkg.com/@phosphor-icons/web"></script>
-    <!-- Marked Markdown Parser for AI -->
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    colors: {
-                        apwe: {
-                            base: 'var(--bg-base)',
-                            surface: 'var(--bg-surface)',
-                            topbar: 'var(--bg-topbar)',
-                            border: 'var(--bg-border)',
-                            accent: 'var(--accent-color)',
-                        }
-                    }
-                }
-            }
-        }
-    </script>
-
+    <title>APWE STUDIOS - Code & Game Engine</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
         :root {
-            --bg-base: #12131c;
-            --bg-surface: #1a1c29;
-            --bg-topbar: #0d0e14;
-            --bg-border: #2a2d40;
+            --bg-primary: #0f172a;
+            --bg-secondary: #1e293b;
+            --bg-editor: #090d16;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
             --accent-color: #6366f1;
             --accent-hover: #4f46e5;
-            --text-main: #e2e8f0;
+            --border-color: #334155;
+            --active-tab: #312e81;
         }
 
-        /* Theme Variations */
-        body.theme-midnight {
-            --bg-base: #030712;
-            --bg-surface: #0f172a;
-            --bg-topbar: #0b0f19;
-            --bg-border: #1e293b;
-            --accent-color: #38bdf8;
-            --accent-hover: #0284c7;
-        }
+        /* Color Themes */
+        body.theme-slate { --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-editor: #090d16; --accent-color: #6366f1; }
+        body.theme-cyberpunk { --bg-primary: #120024; --bg-secondary: #2a004f; --bg-editor: #090014; --accent-color: #ff007f; }
+        body.theme-oled { --bg-primary: #000000; --bg-secondary: #111111; --bg-editor: #000000; --accent-color: #10b981; }
+        body.theme-navy { --bg-primary: #0a192f; --bg-secondary: #112240; --bg-editor: #020c1b; --accent-color: #64ffda; }
 
-        body.theme-cyberpunk {
-            --bg-base: #0c0714;
-            --bg-surface: #1a0f35;
-            --bg-topbar: #07030d;
-            --bg-border: #331c63;
-            --accent-color: #f43f5e;
-            --accent-hover: #e11d48;
-        }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background: var(--bg-primary); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
 
-        body.theme-oled {
-            --bg-base: #000000;
-            --bg-surface: #0a0a0a;
-            --bg-topbar: #000000;
-            --bg-border: #222222;
-            --accent-color: #10b981;
-            --accent-hover: #059669;
+        /* Top Header Navigation */
+        header {
+            background: var(--bg-secondary);
+            height: 55px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 15px;
+            border-bottom: 1px solid var(--border-color);
         }
+        .brand { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.1rem; }
+        .brand-badge { background: var(--accent-color); padding: 3px 8px; borderRadius: 4px; font-size: 0.75rem; text-transform: uppercase; }
 
-        body.theme-slate {
-            --bg-base: #0f172a;
-            --bg-surface: #1e293b;
-            --bg-topbar: #090e17;
-            --bg-border: #334155;
-            --accent-color: #8b5cf6;
-            --accent-hover: #7c3aed;
+        .nav-tabs { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; }
+        .nav-btn {
+            padding: 6px 14px;
+            border: none;
+            background: transparent;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
         }
+        .nav-btn.active { background: var(--accent-color); color: white; }
 
-        body {
-            background-color: var(--bg-base);
+        .action-btns { display: flex; gap: 8px; align-items: center; }
+        .icon-btn {
+            background: var(--bg-primary);
             color: var(--text-main);
-            font-family: 'Inter', system-ui, -apple-system, sans-serif;
-            overflow: hidden;
-            transition: background-color 0.3s ease, color 0.3s ease;
+            border: 1px solid var(--border-color);
+            padding: 8px 12px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: 0.2s;
         }
+        .icon-btn:hover { border-color: var(--accent-color); }
 
-        /* View Navigation Animations */
+        /* View Panels & Animations */
+        .main-container { flex: 1; position: relative; overflow: hidden; }
         .view-panel {
             position: absolute;
-            inset: 0;
+            top: 0; left: 0; width: 100%; height: 100%;
+            display: none;
             opacity: 0;
-            pointer-events: none;
-            transform: scale(0.99) translateY(8px);
-            transition: opacity 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
         }
-        .view-panel.active {
-            opacity: 1;
-            pointer-events: auto;
-            transform: scale(1) translateY(0);
-        }
+        .view-panel.active { display: flex; opacity: 1; transform: translateY(0); }
 
-        /* Code Editor Styling */
-        .editor-container {
-            font-family: 'Fira Code', 'Courier New', monospace;
-            position: relative;
-            display: flex;
-            height: 100%;
-            overflow: hidden;
-        }
-
-        .line-numbers {
-            user-select: none;
-            color: #475569;
-            text-align: right;
-            padding: 12px 10px 12px 8px;
-            font-size: 13px;
-            line-height: 1.6;
-            min-width: 48px;
-            border-right: 1px solid var(--bg-border);
-            background: var(--bg-topbar);
-        }
-
-        .code-textarea {
-            background: transparent;
-            color: var(--text-main);
-            font-family: inherit;
-            font-size: 13.5px;
-            line-height: 1.6;
-            padding: 12px 16px;
-            outline: none;
-            resize: none;
-            white-space: pre;
-            tab-size: 4;
-            width: 100%;
-            height: 100%;
-            border: none;
-        }
-
-        /* Top Horizontal File Tabs Bar */
-        .file-tabs-scroll {
+        /* CODING PANEL */
+        .editor-workspace { flex: 1; display: flex; flex-direction: column; background: var(--bg-editor); }
+        
+        /* Top File Tabs Bar */
+        .file-tabs-bar {
+            background: var(--bg-secondary);
             display: flex;
             align-items: center;
             overflow-x: auto;
-            scrollbar-width: thin;
+            border-bottom: 1px solid var(--border-color);
+            padding-top: 5px;
+            padding-left: 10px;
         }
-        .file-tabs-scroll::-webkit-scrollbar {
-            height: 3px;
-        }
-        .file-tabs-scroll::-webkit-scrollbar-thumb {
-            background: var(--bg-border);
-        }
-
         .file-tab {
+            padding: 8px 16px;
+            background: rgba(0,0,0,0.3);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            border-radius: 6px 6px 0 0;
+            margin-right: 4px;
+            cursor: pointer;
             display: flex;
             align-items: center;
             gap: 8px;
-            padding: 8px 14px;
-            font-size: 12.5px;
-            font-weight: 500;
-            border-right: 1px solid var(--bg-border);
-            background: var(--bg-topbar);
-            color: #94a3b8;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.15s ease;
-            user-select: none;
+            border: 1px solid transparent;
+            border-bottom: none;
         }
-        .file-tab:hover {
-            background: var(--bg-surface);
-            color: #f1f5f9;
-        }
-        .file-tab.active {
-            background: var(--bg-base);
-            color: #ffffff;
-            border-bottom: 2px solid var(--accent-color);
+        .file-tab.active { background: var(--bg-editor); color: var(--text-main); border-color: var(--border-color); font-weight: bold; }
+        .file-tab .close-file { font-size: 0.75rem; opacity: 0.6; }
+        .file-tab .close-file:hover { opacity: 1; color: #ef4444; }
+        .add-file-btn { background: none; border: none; color: var(--text-muted); padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+
+        /* Code Input Area */
+        .editor-container { flex: 1; position: relative; display: flex; }
+        textarea.code-editor {
+            width: 100%; height: 100%;
+            background: var(--bg-editor);
+            color: #e2e8f0;
+            border: none;
+            outline: none;
+            padding: 15px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 1rem;
+            line-height: 1.5;
+            resize: none;
+            tab-size: 4;
         }
 
-        /* Autocomplete Popup */
-        #autocomplete-popup {
+        /* Autocomplete Suggestion Popup */
+        .autocomplete-popup {
             position: absolute;
-            z-index: 100;
-            background-color: var(--bg-surface);
-            border: 1px solid var(--bg-border);
-            border-radius: 8px;
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
-            max-height: 220px;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            max-height: 180px;
             overflow-y: auto;
             display: none;
-            min-width: 260px;
-            font-family: 'Fira Code', monospace;
+            z-index: 100;
+            width: 220px;
         }
-
         .suggestion-item {
-            padding: 7px 12px;
+            padding: 8px 12px;
             cursor: pointer;
-            font-size: 12.5px;
+            font-size: 0.85rem;
             display: flex;
             justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid rgba(255,255,255,0.03);
+            color: var(--text-main);
         }
-        .suggestion-item:hover, .suggestion-item.selected {
-            background-color: var(--bg-border);
-            color: #ffffff;
-        }
+        .suggestion-item:hover, .suggestion-item.selected { background: var(--accent-color); color: white; }
+        .suggestion-type { font-size: 0.7rem; opacity: 0.7; }
 
-        /* Modal Overlays */
-        .modal-overlay {
-            opacity: 0;
-            visibility: hidden;
-            transition: all 0.2s ease;
-            backdrop-filter: blur(6px);
-        }
-        .modal-overlay.active {
-            opacity: 1;
-            visibility: visible;
-        }
-        .modal-card {
-            transform: scale(0.94) translateY(10px);
-            transition: all 0.2s ease;
-        }
-        .modal-overlay.active .modal-card {
-            transform: scale(1) translateY(0);
-        }
+        /* PREVIEW PANEL */
+        #preview-frame { width: 100%; height: 100%; border: none; background: white; }
 
-        /* Custom Pulse Animation */
-        @keyframes pulse-slow {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.4; }
-        }
-        .animate-pulse-slow {
-            animation: pulse-slow 1.5s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-        }
+        /* AI PANEL */
+        .ai-panel { flex-direction: column; background: var(--bg-primary); padding: 20px; gap: 15px; }
+        .chat-box { flex: 1; background: var(--bg-secondary); border-radius: 8px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color); }
+        .chat-msg { max-width: 80%; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; line-height: 1.4; position: relative; }
+        .chat-msg.user { background: var(--accent-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .chat-msg.ai { background: var(--bg-editor); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--border-color); }
+        .code-block-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; margin-top: 8px; }
+        .copy-btn { background: var(--accent-color); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
+        .ai-input-container { display: flex; gap: 10px; }
+        .ai-input { flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; color: var(--text-main); outline: none; }
+        .ai-input:disabled { opacity: 0.5; cursor: not-allowed; }
 
-        /* AI Chat Formatting */
-        .ai-content p { margin-bottom: 0.6em; line-height: 1.5; }
-        .ai-content pre { margin: 0; padding: 12px; background: #0d0e14; overflow-x: auto; font-size: 13px; border-radius: 0 0 8px 8px; }
-        .ai-content code { font-family: monospace; color: #a7f3d0; }
+        /* MODAL DIALOGS */
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
+        .modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; width: 90%; max-width: 500px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
+        .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; }
+        .perm-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; }
+
+        /* Quick Add Modal Preset */
+        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .preset-btn { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px; cursor: pointer; text-align: center; }
+        .preset-btn:hover { border-color: var(--accent-color); }
+
+        /* Toast Notifications */
+        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--accent-color); color: white; padding: 10px 20px; border-radius: 6px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     </style>
 </head>
-<body class="h-full flex flex-col font-sans">
+<body class="theme-slate">
 
-    <!-- ================= HEADER / BRANDING BAR ================= -->
-    <header class="h-14 bg-[var(--bg-topbar)] border-b border-[var(--bg-border)] flex items-center justify-between px-4 z-30 flex-shrink-0">
-        <!-- Logo & Title -->
-        <div class="flex items-center gap-3">
-            <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 to-purple-500 flex items-center justify-center text-white shadow-lg shadow-indigo-500/20">
-                <i class="ph-bold ph-terminal-window text-xl"></i>
-            </div>
-            <div>
-                <div class="flex items-center gap-2">
-                    <span class="font-extrabold text-base tracking-wider text-white">APWE STUDIOS</span>
-                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30 uppercase tracking-widest hidden sm:inline-block">Web & Game Creator</span>
-                </div>
-                <p class="text-[10px] text-gray-400 font-medium hidden md:block">Aplikasi Website Studios Engine</p>
-            </div>
+    <!-- Top Navigation Bar -->
+    <header>
+        <div class="brand">
+            <i class="fa-solid fa-code"></i>
+            <span>APWE STUDIOS</span>
+            <span class="brand-badge">IDE v2.5</span>
         </div>
 
-        <!-- Center 3 Main Navigation Tabs -->
-        <nav class="flex items-center bg-[var(--bg-surface)] p-1 rounded-xl border border-[var(--bg-border)] shadow-inner">
-            <button onclick="switchMainTab('editor')" id="nav-btn-editor" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-[var(--accent-color)] text-white shadow-md">
-                <i class="ph-bold ph-code text-sm"></i>
-                <span data-i18n="tab_coding">Coding</span>
-            </button>
-            <button onclick="switchMainTab('preview')" id="nav-btn-preview" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white">
-                <i class="ph-bold ph-eye text-sm"></i>
-                <span data-i18n="tab_preview">Preview</span>
-            </button>
-            <button onclick="switchMainTab('ai')" id="nav-btn-ai" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-purple-300">
-                <i class="ph-bold ph-sparkle text-sm text-purple-400"></i>
-                <span data-i18n="tab_ai">APWE AI</span>
-            </button>
-        </nav>
+        <div class="nav-tabs">
+            <button class="nav-btn active" onclick="switchView('coding')"><i class="fa-solid fa-code"></i> Coding</button>
+            <button class="nav-btn" onclick="switchView('preview')"><i class="fa-solid fa-eye"></i> Preview</button>
+            <button class="nav-btn" onclick="switchView('ai')"><i class="fa-solid fa-wand-magic-sparkles"></i> APWE AI</button>
+        </div>
 
-        <!-- Right Quick Actions -->
-        <div class="flex items-center gap-2">
-            <!-- Save Status Indicator -->
-            <div id="save-indicator" class="hidden sm:flex items-center gap-1.5 text-[11px] text-emerald-400 font-medium bg-emerald-500/10 px-2.5 py-1 rounded-md border border-emerald-500/20">
-                <i class="ph-bold ph-check-circle"></i>
-                <span data-i18n="saved">Saved</span>
-            </div>
-
-            <button onclick="saveProject(true)" class="px-3 py-1.5 bg-[var(--bg-surface)] hover:bg-[var(--bg-border)] text-gray-200 border border-[var(--bg-border)] rounded-lg text-xs font-medium flex items-center gap-1.5 transition-colors">
-                <i class="ph-bold ph-floppy-disk text-indigo-400"></i>
-                <span class="hidden md:inline" data-i18n="btn_save">Save</span>
-            </button>
-            
-            <button onclick="openModal('modal-deploy')" class="px-3 py-1.5 bg-gradient-to-r from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 transition-all shadow-md shadow-indigo-600/20">
-                <i class="ph-bold ph-rocket-launch"></i>
-                <span class="hidden md:inline" data-i18n="btn_deploy">Deploy</span>
-            </button>
-
-            <button onclick="openModal('modal-settings')" class="p-2 text-gray-400 hover:text-white hover:bg-[var(--bg-surface)] rounded-lg border border-transparent hover:border-[var(--bg-border)] transition-all">
-                <i class="ph-bold ph-gear text-lg"></i>
-            </button>
+        <div class="action-btns">
+            <button class="icon-btn" onclick="saveProject()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
+            <button class="icon-btn" onclick="openModal('deploy-modal')"><i class="fa-solid fa-rocket"></i> Deploy</button>
+            <button class="icon-btn" onclick="downloadApp()"><i class="fa-solid fa-download"></i> Download App</button>
+            <button class="icon-btn" onclick="openModal('settings-modal')"><i class="fa-solid fa-gear"></i> Settings</button>
         </div>
     </header>
 
-    <!-- ================= MAIN VIEW CONTAINER ================= -->
-    <div class="flex-1 relative overflow-hidden">
-
-        <!-- ================= TAB 1: CODING IDE (TOP FILE TABS) ================= -->
-        <div id="view-editor" class="view-panel active flex flex-col h-full bg-[var(--bg-base)]">
-            
-            <!-- Horizontal File Tabs Bar (ABOVE Editor) -->
-            <div class="h-10 bg-[var(--bg-topbar)] border-b border-[var(--bg-border)] flex items-center justify-between px-2">
-                <div id="file-tabs-container" class="file-tabs-scroll flex-1 mr-2">
-                    <!-- File Tabs generated dynamically here -->
+    <!-- Main Workspace Container -->
+    <div class="main-container">
+        
+        <!-- PANEL 1: CODING EDITOR -->
+        <div id="coding-panel" class="view-panel active">
+            <div class="editor-workspace">
+                <div class="file-tabs-bar" id="file-tabs-bar">
+                    <!-- Tabs rendered dynamically -->
+                    <button class="add-file-btn" onclick="openModal('add-file-modal')"><i class="fa-solid fa-plus"></i></button>
                 </div>
-
-                <!-- Add File (+) Button -->
-                <button onclick="openModal('modal-newfile')" class="px-2.5 py-1 bg-[var(--bg-surface)] hover:bg-[var(--accent-color)] text-gray-300 hover:text-white rounded-md text-xs font-semibold flex items-center gap-1 border border-[var(--bg-border)] transition-colors flex-shrink-0" title="Add New File">
-                    <i class="ph-bold ph-plus"></i>
-                    <span class="hidden sm:inline" data-i18n="new_file">New File</span>
-                </button>
+                <div class="editor-container">
+                    <textarea id="code-editor" class="code-editor" spellcheck="false" placeholder="Write your script or markup here..."></textarea>
+                    <div id="autocomplete-popup" class="autocomplete-popup"></div>
+                </div>
             </div>
-
-            <!-- Code Editor Workspace -->
-            <main class="flex-1 relative bg-[var(--bg-base)] overflow-hidden">
-                <div class="editor-container" id="editor-wrapper">
-                    <!-- Line Numbers -->
-                    <div id="line-numbers" class="line-numbers">1</div>
-                    
-                    <!-- Text Area Editor -->
-                    <textarea id="code-editor" class="code-textarea" spellcheck="false" disabled placeholder="No file open. Click '+ New File' above to start coding in APWE STUDIOS..."></textarea>
-                    
-                    <!-- Autocomplete Popup -->
-                    <div id="autocomplete-popup"></div>
-
-                    <!-- Empty State Overlay -->
-                    <div id="empty-editor-state" class="absolute inset-0 bg-[var(--bg-base)] flex flex-col items-center justify-center p-6 text-center z-10">
-                        <div class="w-16 h-16 rounded-2xl bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 flex items-center justify-center text-3xl mb-4 shadow-xl">
-                            <i class="ph-duotone ph-code-block"></i>
-                        </div>
-                        <h3 class="text-base font-bold text-white mb-1" data-i18n="empty_title">APWE STUDIOS Workspace Empty</h3>
-                        <p class="text-xs text-gray-400 max-w-sm mb-5" data-i18n="empty_subtitle">Create a new HTML, CSS, JavaScript, Python, or Lua file to begin building your project.</p>
-                        <button onclick="openModal('modal-newfile')" class="px-4 py-2 bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-indigo-500/20">
-                            <i class="ph-bold ph-plus-circle text-base"></i>
-                            <span data-i18n="create_first_file">Create First File</span>
-                        </button>
-                    </div>
-                </div>
-            </main>
         </div>
 
-        <!-- ================= TAB 2: LIVE PREVIEW ================= -->
-        <div id="view-preview" class="view-panel flex flex-col h-full bg-white">
-            <div class="h-10 bg-[var(--bg-topbar)] border-b border-[var(--bg-border)] flex justify-between items-center px-4 flex-shrink-0">
-                <div class="flex items-center gap-2 text-xs text-gray-300 font-mono">
-                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                    <span>APWE Live Server: <span class="text-indigo-400">http://localhost:3000/index.html</span></span>
-                </div>
-                <div class="flex items-center gap-2">
-                    <button onclick="refreshPreview()" class="px-3 py-1 bg-[var(--bg-surface)] hover:bg-[var(--bg-border)] text-gray-200 rounded text-xs font-medium flex items-center gap-1.5 border border-[var(--bg-border)] transition-colors">
-                        <i class="ph-bold ph-arrows-clockwise"></i>
-                        <span data-i18n="btn_reload">Reload</span>
-                    </button>
-                </div>
-            </div>
-            <iframe id="preview-frame" class="w-full flex-1 border-none bg-white"></iframe>
+        <!-- PANEL 2: LIVE PREVIEW -->
+        <div id="preview-panel" class="view-panel">
+            <iframe id="preview-frame"></iframe>
         </div>
 
-        <!-- ================= TAB 3: APWE AI ASSISTANT ================= -->
-        <div id="view-ai" class="view-panel flex flex-col h-full bg-[var(--bg-base)] p-4 max-w-5xl mx-auto w-full">
-            <!-- AI Header Banner -->
-            <div class="flex items-center justify-between pb-3 mb-4 border-b border-[var(--bg-border)] flex-shrink-0">
-                <div class="flex items-center gap-3">
-                    <div class="w-10 h-10 rounded-xl bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-purple-400">
-                        <i class="ph-fill ph-sparkle text-2xl"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-sm font-bold text-white flex items-center gap-2">
-                            APWE Coding AI
-                            <span class="text-[10px] bg-purple-500/20 text-purple-300 px-2 py-0.5 rounded border border-purple-500/30">Gemini Powered</span>
-                        </h2>
-                        <p class="text-xs text-gray-400" data-i18n="ai_subtitle">Strictly specialized in HTML, JS, Lua, Python & Game Logic.</p>
-                    </div>
-                </div>
-
-                <!-- Thinking Status Badge -->
-                <div id="ai-thinking-badge" class="hidden flex items-center gap-2 px-3 py-1 bg-purple-500/10 border border-purple-500/30 rounded-full">
-                    <span class="w-2 h-2 rounded-full bg-purple-400 animate-ping"></span>
-                    <span class="text-xs font-semibold text-purple-300 animate-pulse-slow" data-i18n="ai_thinking">APWE AI is thinking...</span>
+        <!-- PANEL 3: APWE AI ASSISTANT -->
+        <div id="ai-panel" class="view-panel ai-panel">
+            <div class="chat-box" id="chat-box">
+                <div class="chat-msg ai">
+                    Hello! I am <strong>APWE AI</strong>, your dedicated coding and game developer assistant. Ask me to write scripts, fix bugs, or build game mechanics!
                 </div>
             </div>
-
-            <!-- Chat History -->
-            <div id="ai-chat-box" class="flex-1 overflow-y-auto space-y-4 mb-4 pr-1">
-                <!-- Welcome Bubble -->
-                <div class="flex gap-3">
-                    <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-md">
-                        <i class="ph-bold ph-robot"></i>
-                    </div>
-                    <div class="bg-[var(--bg-surface)] p-3.5 rounded-2xl rounded-tl-none text-xs text-gray-200 border border-[var(--bg-border)] max-w-2xl shadow-sm">
-                        Hello! I am **APWE AI**, your coding & game engine assistant. Ask me to generate scripts, debug errors, or construct game loops.
-                    </div>
-                </div>
+            <div class="ai-input-container">
+                <input type="text" id="ai-input" class="ai-input" placeholder="Type your coding request (e.g., Make a canvas bounce game)..." onkeypress="if(event.key==='Enter') sendAIMessage()">
+                <button class="icon-btn" id="ai-send-btn" onclick="sendAIMessage()" style="background: var(--accent-color); color: white;"><i class="fa-solid fa-paper-plane"></i> Send</button>
             </div>
+        </div>
 
-            <!-- Input Box & Lock Protection -->
-            <div class="flex gap-2 relative flex-shrink-0">
-                <input type="text" id="ai-input" placeholder="Ask APWE AI to write a Lua game script or HTML layout..." class="flex-1 bg-[var(--bg-surface)] border border-[var(--bg-border)] rounded-xl px-4 py-3 text-xs text-white outline-none focus:border-purple-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed" onkeydown="if(event.key==='Enter' && !this.disabled) sendToGemini()">
-                
-                <button id="ai-send-btn" onclick="sendToGemini()" class="px-5 py-3 bg-purple-600 hover:bg-purple-500 text-white rounded-xl text-xs font-semibold flex items-center gap-2 transition-all shadow-lg shadow-purple-600/20 disabled:opacity-50 disabled:cursor-not-allowed">
-                    <i class="ph-bold ph-paper-plane-right text-sm"></i>
-                    <span data-i18n="send">Send</span>
-                </button>
+    </div>
+
+    <!-- MODAL 1: ADD FILE -->
+    <div id="add-file-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Add New File (Max 40)</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('add-file-modal')"></i>
+            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted)">Choose a preset or type a custom file name:</p>
+            <div class="preset-grid">
+                <button class="preset-btn" onclick="createFile('index.html')">index.html</button>
+                <button class="preset-btn" onclick="createFile('style.css')">style.css</button>
+                <button class="preset-btn" onclick="createFile('app.js')">app.js</button>
+                <button class="preset-btn" onclick="createFile('main.py')">main.py</button>
+                <button class="preset-btn" onclick="createFile('game.lua')">game.lua</button>
+            </div>
+            <div style="display:flex; gap:8px;">
+                <input type="text" id="custom-file-name" class="ai-input" placeholder="custom_script.js">
+                <button class="icon-btn" onclick="createCustomFile()">Add</button>
             </div>
         </div>
     </div>
 
-    <!-- ================= MODALS ================= -->
-
-    <!-- Modal 1: Add New File -->
-    <div id="modal-newfile" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-        <div class="modal-card bg-[var(--bg-surface)] border border-[var(--bg-border)] p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="ph-bold ph-file-plus text-indigo-400"></i>
-                    <span data-i18n="modal_newfile">Add New File to Workspace</span>
-                </h3>
-                <button onclick="closeModal('modal-newfile')" class="text-gray-400 hover:text-white"><i class="ph-bold ph-x"></i></button>
+    <!-- MODAL 2: DEPLOY -->
+    <div id="deploy-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Deploy Website</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('deploy-modal')"></i>
             </div>
-            
-            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Quick Presets:</p>
-            <div class="flex flex-wrap gap-2 mb-5">
-                <button onclick="createNewFile('index.html')" class="px-3 py-1.5 bg-[var(--bg-topbar)] hover:bg-[var(--bg-border)] border border-[var(--bg-border)] rounded-lg text-xs font-mono text-orange-400 flex items-center gap-1.5 transition-colors">
-                    <i class="ph-bold ph-file-html"></i> index.html
-                </button>
-                <button onclick="createNewFile('style.css')" class="px-3 py-1.5 bg-[var(--bg-topbar)] hover:bg-[var(--bg-border)] border border-[var(--bg-border)] rounded-lg text-xs font-mono text-blue-400 flex items-center gap-1.5 transition-colors">
-                    <i class="ph-bold ph-file-css"></i> style.css
-                </button>
-                <button onclick="createNewFile('app.js')" class="px-3 py-1.5 bg-[var(--bg-topbar)] hover:bg-[var(--bg-border)] border border-[var(--bg-border)] rounded-lg text-xs font-mono text-yellow-400 flex items-center gap-1.5 transition-colors">
-                    <i class="ph-bold ph-file-js"></i> app.js
-                </button>
-                <button onclick="createNewFile('main.py')" class="px-3 py-1.5 bg-[var(--bg-topbar)] hover:bg-[var(--bg-border)] border border-[var(--bg-border)] rounded-lg text-xs font-mono text-sky-300 flex items-center gap-1.5 transition-colors">
-                    <i class="ph-bold ph-file-code"></i> main.py
-                </button>
-                <button onclick="createNewFile('game.lua')" class="px-3 py-1.5 bg-[var(--bg-topbar)] hover:bg-[var(--bg-border)] border border-[var(--bg-border)] rounded-lg text-xs font-mono text-indigo-400 flex items-center gap-1.5 transition-colors">
-                    <i class="ph-bold ph-file-code"></i> game.lua
-                </button>
-            </div>
+            <p style="font-size:0.85rem; color:var(--text-muted)">Enter your platform token to deploy instantly:</p>
+            <label style="font-size:0.8rem">Deploy Platform:</label>
+            <select id="deploy-target" class="ai-input">
+                <option value="github">GitHub Pages</option>
+                <option value="vercel">Vercel</option>
+                <option value="netlify">Netlify</option>
+            </select>
+            <input type="password" id="deploy-token" class="ai-input" placeholder="Paste Access Token / Auth Key">
+            <button class="icon-btn" onclick="executeDeploy()" style="background:var(--accent-color); color:white; justify-content:center;">Deploy Now</button>
+        </div>
+    </div>
 
-            <p class="text-[11px] font-semibold text-gray-400 uppercase tracking-wider mb-2">Custom File Name:</p>
-            <div class="flex gap-2">
-                <input type="text" id="new-filename-input" placeholder="e.g. player.js" class="flex-1 bg-[var(--bg-topbar)] border border-[var(--bg-border)] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                <button onclick="createCustomFile()" class="px-4 py-2 bg-[var(--accent-color)] hover:bg-[var(--accent-hover)] text-white rounded-xl text-xs font-semibold transition-colors">Add File</button>
+    <!-- MODAL 3: SETTINGS -->
+    <div id="settings-modal" class="modal-overlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3>Settings & Permissions</h3>
+                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('settings-modal')"></i>
+            </div>
+            <label style="font-size:0.85rem">Theme:</label>
+            <select onchange="changeTheme(this.value)" class="ai-input">
+                <option value="slate">Slate Dark</option>
+                <option value="cyberpunk">Cyberpunk Neon</option>
+                <option value="oled">OLED Pitch Black</option>
+                <option value="navy">Deep Navy</option>
+            </select>
+            <div class="modal-header" style="margin-top:10px;">
+                <h4>Device Permissions</h4>
+            </div>
+            <div class="perm-grid">
+                <div class="perm-item">GPS Location <input type="checkbox" checked></div>
+                <div class="perm-item">Camera Access <input type="checkbox" checked></div>
+                <div class="perm-item">Microphone <input type="checkbox" checked></div>
+                <div class="perm-item">Interactive Maps <input type="checkbox" checked></div>
+                <div class="perm-item">Notifications <input type="checkbox"></div>
+                <div class="perm-item">Gyroscope Sensor <input type="checkbox" checked></div>
+                <div class="perm-item">Bluetooth API <input type="checkbox"></div>
+                <div class="perm-item">Storage Read/Write <input type="checkbox" checked></div>
+                <div class="perm-item">Clipboard Copy/Paste <input type="checkbox" checked></div>
+                <div class="perm-item">Background Sync <input type="checkbox"></div>
             </div>
         </div>
     </div>
 
-    <!-- Modal 2: Settings & Expanded Permissions -->
-    <div id="modal-settings" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-        <div class="modal-card bg-[var(--bg-surface)] border border-[var(--bg-border)] p-6 rounded-2xl w-full max-w-lg max-h-[85vh] overflow-y-auto shadow-2xl">
-            <div class="flex justify-between items-center mb-5 pb-3 border-b border-[var(--bg-border)]">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="ph-bold ph-sliders text-indigo-400"></i>
-                    <span>APWE STUDIOS Settings & Permissions</span>
-                </h3>
-                <button onclick="closeModal('modal-settings')" class="text-gray-400 hover:text-white"><i class="ph-bold ph-x"></i></button>
-            </div>
+    <!-- Toast Component -->
+    <div id="toast" class="toast">Message</div>
 
-            <div class="space-y-6">
-                <!-- Theme Selector -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">IDE Color Theme:</label>
-                    <div class="grid grid-cols-3 gap-2">
-                        <button onclick="setTheme('dark')" id="theme-btn-dark" class="p-2.5 bg-[#12131c] border border-indigo-500/50 rounded-xl text-xs font-semibold text-white flex items-center justify-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-indigo-500"></span> Dark Modern
-                        </button>
-                        <button onclick="setTheme('midnight')" id="theme-btn-midnight" class="p-2.5 bg-[#030712] border border-gray-700 rounded-xl text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-sky-400"></span> Midnight
-                        </button>
-                        <button onclick="setTheme('cyberpunk')" id="theme-btn-cyberpunk" class="p-2.5 bg-[#0c0714] border border-gray-700 rounded-xl text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-rose-500"></span> Cyberpunk
-                        </button>
-                        <button onclick="setTheme('oled')" id="theme-btn-oled" class="p-2.5 bg-[#000000] border border-gray-700 rounded-xl text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-emerald-500"></span> OLED Black
-                        </button>
-                        <button onclick="setTheme('slate')" id="theme-btn-slate" class="p-2.5 bg-[#0f172a] border border-gray-700 rounded-xl text-xs font-semibold text-gray-300 flex items-center justify-center gap-2">
-                            <span class="w-3 h-3 rounded-full bg-purple-500"></span> Slate
-                        </button>
-                    </div>
-                </div>
-
-                <!-- Language Selector -->
-                <div>
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-2">Interface Language:</label>
-                    <div class="flex gap-2">
-                        <button onclick="setLang('en')" id="lang-btn-en" class="flex-1 py-2 bg-[var(--accent-color)] text-white rounded-xl text-xs font-bold transition-colors">English</button>
-                        <button onclick="setLang('id')" id="lang-btn-id" class="flex-1 py-2 bg-[var(--bg-topbar)] border border-[var(--bg-border)] text-gray-400 rounded-xl text-xs font-bold transition-colors">Bahasa Indonesia</button>
-                    </div>
-                </div>
-
-                <!-- Expanded Permissions Panel (10 Items) -->
-                <div class="pt-4 border-t border-[var(--bg-border)]">
-                    <label class="block text-xs font-bold text-gray-300 uppercase tracking-wider mb-3">APWE App Permissions (Web Preview):</label>
-                    
-                    <div class="space-y-2">
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-camera text-indigo-400"></i> Camera Access</span>
-                            <button onclick="togglePerm(this, 'camera')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-microphone text-indigo-400"></i> Microphone Access</span>
-                            <button onclick="togglePerm(this, 'mic')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-map-pin text-indigo-400"></i> GPS Location</span>
-                            <button onclick="togglePerm(this, 'gps')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-map-trifold text-indigo-400"></i> Interactive Maps Integration</span>
-                            <button onclick="togglePerm(this, 'maps')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-bell-simple text-indigo-400"></i> Push Notifications</span>
-                            <button onclick="togglePerm(this, 'notifications')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-compass text-indigo-400"></i> Motion & Gyroscope Sensors</span>
-                            <button onclick="togglePerm(this, 'gyro')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-bluetooth text-indigo-400"></i> Bluetooth Device Sync</span>
-                            <button onclick="togglePerm(this, 'bluetooth')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-hard-drives text-indigo-400"></i> Storage & File Disk Access</span>
-                            <button onclick="togglePerm(this, 'storage')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-clipboard text-indigo-400"></i> Clipboard Read/Write</span>
-                            <button onclick="togglePerm(this, 'clipboard')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-
-                        <div class="flex items-center justify-between p-2.5 bg-[var(--bg-topbar)] rounded-xl border border-[var(--bg-border)]">
-                            <span class="text-xs text-gray-200 flex items-center gap-2"><i class="ph-bold ph-arrows-down-up text-indigo-400"></i> Background Data Sync</span>
-                            <button onclick="togglePerm(this, 'sync')" class="w-10 h-5 bg-gray-700 rounded-full relative transition-colors"><div class="w-4 h-4 bg-white rounded-full absolute left-0.5 top-0.5 transition-transform"></div></button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Modal 3: Deploy (GitHub / Vercel / Netlify Tokens) -->
-    <div id="modal-deploy" class="modal-overlay fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60">
-        <div class="modal-card bg-[var(--bg-surface)] border border-[var(--bg-border)] p-6 rounded-2xl w-full max-w-md shadow-2xl">
-            <div class="flex justify-between items-center mb-4">
-                <h3 class="text-sm font-bold text-white flex items-center gap-2">
-                    <i class="ph-bold ph-cloud-arrow-up text-indigo-400"></i>
-                    <span>Deploy Project - APWE STUDIOS</span>
-                </h3>
-                <button onclick="closeModal('modal-deploy')" class="text-gray-400 hover:text-white"><i class="ph-bold ph-x"></i></button>
-            </div>
-
-            <div class="space-y-4">
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">Target Hosting Platform:</label>
-                    <select id="deploy-platform" class="w-full bg-[var(--bg-topbar)] border border-[var(--bg-border)] rounded-xl px-3 py-2 text-xs text-white outline-none">
-                        <option value="vercel">Vercel Web App</option>
-                        <option value="github">GitHub Pages Repository</option>
-                        <option value="netlify">Netlify Static Cloud</option>
-                    </select>
-                </div>
-
-                <div>
-                    <label class="block text-xs font-semibold text-gray-300 mb-1">API Token / Personal Access Token:</label>
-                    <input type="password" id="deploy-token" placeholder="Paste your GitHub or Vercel token..." class="w-full bg-[var(--bg-topbar)] border border-[var(--bg-border)] rounded-xl px-3.5 py-2 text-xs text-white outline-none focus:border-indigo-500">
-                </div>
-
-                <button onclick="simulateDeploy()" class="w-full py-2.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-indigo-600/20">
-                    Publish Application
-                </button>
-            </div>
-        </div>
-    </div>
-
-    <!-- Toast Notification Overlay -->
-    <div id="toast-box" class="fixed top-5 right-5 px-4 py-2.5 rounded-xl shadow-2xl transition-all transform translate-x-48 opacity-0 z-[100] font-medium text-xs flex items-center gap-2 bg-[var(--bg-surface)] text-white border border-[var(--bg-border)] pointer-events-none">
-        <i id="toast-icon" class="ph-fill ph-info text-base"></i>
-        <span id="toast-text">Toast Message</span>
-    </div>
-
-    <!-- ================= JAVASCRIPT LOGIC ================= -->
     <script>
-        // Dictionary i18n
-        const i18nDict = {
-            en: {
-                tab_coding: "Coding", tab_preview: "Preview", tab_ai: "APWE AI",
-                saved: "Saved", btn_save: "Save", btn_deploy: "Deploy", btn_reload: "Reload",
-                new_file: "New File", empty_title: "APWE STUDIOS Workspace Empty",
-                empty_subtitle: "Create a new HTML, CSS, JavaScript, Python, or Lua file to begin building your project.",
-                create_first_file: "Create First File", modal_newfile: "Add New File to Workspace",
-                ai_subtitle: "Strictly specialized in HTML, JS, Lua, Python & Game Logic.",
-                ai_thinking: "APWE AI is thinking...", send: "Send"
-            },
-            id: {
-                tab_coding: "Koding", tab_preview: "Pratinjau", tab_ai: "APWE AI",
-                saved: "Tersimpan", btn_save: "Simpan", btn_deploy: "Deploy", btn_reload: "Muat Ulang",
-                new_file: "File Baru", empty_title: "Ruang Kerja APWE STUDIOS Kosong",
-                empty_subtitle: "Buat file HTML, CSS, JavaScript, Python, atau Lua baru untuk mulai membuat proyek Anda.",
-                create_first_file: "Buat File Pertama", modal_newfile: "Tambah File Baru ke Ruang Kerja",
-                ai_subtitle: "Khusus spesialisasi logika HTML, JS, Lua, Python & Game.",
-                ai_thinking: "APWE AI sedang berpikir...", send: "Kirim"
-            }
-        };
-
-        let currentLang = 'en';
+        // Global Project State
         let files = {};
-        let currentFile = null;
+        let activeFile = '';
+        let aiThinking = false;
 
-        // Snippets Dictionary with offset calculations
+        // Snippet Libraries per Model
         const snippets = {
-            html: {
-                'h': { insertText: '<html>\n<head>\n    <title>Title</title>\n</head>\n<body>\n    \n</body>\n</html>', offset: -25 },
-                'h1': { insertText: '<h1></h1>', offset: -5 },
-                'h2': { insertText: '<h2></h2>', offset: -5 },
-                'head': { insertText: '<head>\n    \n</head>', offset: -10 },
-                'header': { insertText: '<header>\n    \n</header>', offset: -12 },
-                'href': { insertText: '<a href="">Link</a>', offset: -11 },
-                'div': { insertText: '<div>\n    \n</div>', offset: -7 },
-                'html5': { insertText: '<!DOCTYPE html>\n<html lang="en">\n<head>\n    <meta charset="UTF-8">\n    <title>Document</title>\n</head>\n<body>\n    \n</body>\n</html>', offset: -16 },
-                'script': { insertText: '<script>\n    \n<\/script>', offset: -10 },
-                'style': { insertText: '<style>\n    \n</style>', offset: -9 },
-                'button': { insertText: '<button></button>', offset: -9 },
-                'input': { insertText: '<input type="text" placeholder="">', offset: -3 }
-            },
-            js: {
-                'f': { insertText: 'function name() {\n    \n}', offset: -2 },
-                'fun': { insertText: 'function name() {\n    \n}', offset: -2 },
-                'clg': { insertText: 'console.log();', offset: -2 },
-                'for': { insertText: 'for (let i = 0; i < length; i++) {\n    \n}', offset: -2 },
-                'ife': { insertText: 'if (condition) {\n    \n} else {\n    \n}', offset: -27 },
-                'async': { insertText: 'async function fetchData() {\n    \n}', offset: -2 }
-            },
-            lua: {
-                'f': { insertText: 'function name()\n    \nend', offset: -4 },
-                'fun': { insertText: 'function name()\n    \nend', offset: -4 },
-                'for': { insertText: 'for i = 1, 10 do\n    \nend', offset: -4 },
-                'local': { insertText: 'local varName = value', offset: 0 }
-            },
-            python: {
-                'd': { insertText: 'def function_name():\n    pass', offset: -9 },
-                'def': { insertText: 'def name():\n    pass', offset: -9 },
-                'for': { insertText: 'for i in range(10):\n    pass', offset: -4 },
-                'class': { insertText: 'class Name:\n    def __init__(self):\n        pass', offset: 0 }
-            },
-            css: {
-                'flex': { insertText: 'display: flex;\nalign-items: center;\njustify-content: center;', offset: 0 },
-                'bg': { insertText: 'background-color: #ffffff;', offset: -1 },
-                'hover': { insertText: ':hover {\n    \n}', offset: -4 }
-            }
+            html: [
+                { keyword: 'h1', code: '<h1></h1>', offset: 5 },
+                { keyword: 'h2', code: '<h2></h2>', offset: 5 },
+                { keyword: 'h3', code: '<h3></h3>', offset: 5 },
+                { keyword: 'html', code: '<!DOCTYPE html>\n<html>\n<head>\n\t<title></title>\n</head>\n<body>\n\n</body>\n</html>', offset: 0 },
+                { keyword: 'div', code: '<div></div>', offset: 6 },
+                { keyword: 'p', code: '<p></p>', offset: 4 },
+                { keyword: 'a', code: '<a href=""></a>', offset: 9 },
+                { keyword: 'script', code: '<script>\n\t\n<\/script>', offset: 10 },
+                { keyword: 'style', code: '<style>\n\t\n</style>', offset: 9 }
+            ],
+            js: [
+                { keyword: 'fun', code: 'function name() {\n\t\n}', offset: 14 },
+                { keyword: 'for', code: 'for (let i = 0; i < length; i++) {\n\t\n}', offset: 33 },
+                { keyword: 'if', code: 'if (condition) {\n\t\n}', offset: 15 },
+                { keyword: 'log', code: 'console.log();', offset: 12 },
+                { keyword: 'fetch', code: 'fetch(url).then(res => res.json()).then(data => {\n\t\n});', offset: 10 }
+            ],
+            py: [
+                { keyword: 'def', code: 'def function_name():\n\tpass', offset: 18 },
+                { keyword: 'if', code: 'if __name__ == "__main__":\n\tpass', offset: 27 },
+                { keyword: 'for', code: 'for item in iterable:\n\tpass', offset: 22 }
+            ],
+            lua: [
+                { keyword: 'fun', code: 'function name()\n\t\nend', offset: 14 },
+                { keyword: 'if', code: 'if condition then\n\t\nend', offset: 17 }
+            ],
+            css: [
+                { keyword: 'hover', code: ':hover {\n\t\n}', offset: 8 },
+                { keyword: 'flex', code: 'display: flex;\njustify-content: center;\nalign-items: center;', offset: 0 }
+            ]
         };
 
-        // Core Elements
-        const editor = document.getElementById('code-editor');
-        const linesPanel = document.getElementById('line-numbers');
-        const popup = document.getElementById('autocomplete-popup');
-        const emptyState = document.getElementById('empty-editor-state');
-        const tabsContainer = document.getElementById('file-tabs-container');
-
-        // Initialization
+        // Initialize Engine
         window.onload = () => {
-            loadSavedProject();
-            renderTabs();
-            if (currentFile) switchFile(currentFile);
-        };
-
-        function loadSavedProject() {
-            const saved = localStorage.getItem('apwe_studios_project');
+            const saved = localStorage.getItem('APWE_PROJECT');
             if (saved) {
                 files = JSON.parse(saved);
-                const keys = Object.keys(files);
-                if (keys.length > 0) currentFile = keys[0];
             } else {
-                files = {}; // Starts 100% empty
+                files = { 'index.html': '' };
+            }
+            activeFile = Object.keys(files)[0] || 'index.html';
+            renderTabs();
+            loadEditorContent();
+
+            // Setup Editor Autocomplete Listener
+            const editor = document.getElementById('code-editor');
+            editor.addEventListener('input', handleEditorInput);
+            editor.addEventListener('keydown', handleKeyDown);
+        };
+
+        function switchView(viewName) {
+            document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+
+            event.currentTarget.classList.add('active');
+            const panel = document.getElementById(viewName + '-panel');
+            panel.classList.add('active');
+
+            if (viewName === 'preview') {
+                updatePreview();
             }
         }
 
-        // Horizontal Top File Tabs Rendering
         function renderTabs() {
-            tabsContainer.innerHTML = '';
-            const fileNames = Object.keys(files);
-
-            if (fileNames.length === 0) {
-                emptyState.style.display = 'flex';
-                editor.disabled = true;
-                editor.value = '';
-                linesPanel.innerHTML = '1';
-                return;
-            }
-
-            emptyState.style.display = 'none';
-            editor.disabled = false;
-
-            fileNames.forEach(name => {
-                const ext = name.split('.').pop().toLowerCase();
-                let iconClass = 'ph-file text-gray-400';
-                if (ext === 'html') iconClass = 'ph-file-html text-orange-400';
-                else if (ext === 'css') iconClass = 'ph-file-css text-blue-400';
-                else if (ext === 'js') iconClass = 'ph-file-js text-yellow-400';
-                else if (ext === 'py') iconClass = 'ph-file-code text-sky-300';
-                else if (ext === 'lua') iconClass = 'ph-file-code text-indigo-400';
-
+            const bar = document.getElementById('file-tabs-bar');
+            bar.innerHTML = '';
+            
+            Object.keys(files).forEach(filename => {
                 const tab = document.createElement('div');
-                tab.className = `file-tab ${currentFile === name ? 'active' : ''}`;
+                tab.className = `file-tab ${filename === activeFile ? 'active' : ''}`;
+                tab.onclick = () => switchFile(filename);
                 tab.innerHTML = `
-                    <i class="ph-bold ${iconClass}"></i>
-                    <span>${name}</span>
-                    <button onclick="closeFile(event, '${name}')" class="text-gray-500 hover:text-white rounded p-0.5"><i class="ph-bold ph-x text-xs"></i></button>
+                    <span>${filename}</span>
+                    <i class="fa-solid fa-xmark close-file" onclick="deleteFile(event, '${filename}')"></i>
                 `;
-                tab.onclick = () => switchFile(name);
-                tabsContainer.appendChild(tab);
+                bar.appendChild(tab);
             });
+
+            const addBtn = document.createElement('button');
+            addBtn.className = 'add-file-btn';
+            addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
+            addBtn.onclick = () => openModal('add-file-modal');
+            bar.appendChild(addBtn);
         }
 
         function switchFile(filename) {
-            if (currentFile && files.hasOwnProperty(currentFile)) {
-                files[currentFile] = editor.value;
-            }
-            currentFile = filename;
-            editor.value = files[filename] || '';
-            updateLineNumbers();
+            files[activeFile] = document.getElementById('code-editor').value;
+            activeFile = filename;
             renderTabs();
-            hidePopup();
+            loadEditorContent();
         }
 
-        function createNewFile(name) {
-            const fileKeys = Object.keys(files);
-            if (fileKeys.length >= 40) {
-                showToast('File limit reached! Maximum 40 files allowed per project.', 'error');
-                closeModal('modal-newfile');
+        function loadEditorContent() {
+            document.getElementById('code-editor').value = files[activeFile] || '';
+        }
+
+        function createFile(name) {
+            if (Object.keys(files).length >= 40) {
+                showToast('Maximum file limit reached (40 files)!');
                 return;
             }
-
-            if (!files.hasOwnProperty(name)) {
-                files[name] = ''; // Starts 100% blank
+            if (!files[name]) {
+                files[name] = '';
+                activeFile = name;
+                renderTabs();
+                loadEditorContent();
+                closeModal('add-file-modal');
+                showToast(`Created file: ${name}`);
             }
-            closeModal('modal-newfile');
-            switchFile(name);
-            saveProject(false);
-            showToast(`File ${name} added to workspace.`, 'success');
         }
 
         function createCustomFile() {
-            const input = document.getElementById('new-filename-input');
-            let name = input.value.trim();
-            if (!name) return;
-            if (!name.includes('.')) name += '.js';
-            createNewFile(name);
-            input.value = '';
+            const input = document.getElementById('custom-file-name');
+            const name = input.value.trim();
+            if (name) {
+                createFile(name);
+                input.value = '';
+            }
         }
 
-        function closeFile(e, filename) {
+        function deleteFile(e, name) {
             e.stopPropagation();
-            delete files[filename];
-            const keys = Object.keys(files);
-            if (currentFile === filename) {
-                currentFile = keys.length > 0 ? keys[0] : null;
+            if (Object.keys(files).length <= 1) {
+                showToast("Project must contain at least 1 file!");
+                return;
             }
-            saveProject(false);
+            delete files[name];
+            if (activeFile === name) {
+                activeFile = Object.keys(files)[0];
+            }
             renderTabs();
-            if (currentFile) switchFile(currentFile);
+            loadEditorContent();
         }
 
-        function saveProject(showNotification = true) {
-            if (currentFile && files.hasOwnProperty(currentFile)) {
-                files[currentFile] = editor.value;
-            }
-            localStorage.setItem('apwe_studios_project', JSON.stringify(files));
-            if (showNotification) showToast('Project saved securely to local storage.', 'success');
+        function saveProject() {
+            files[activeFile] = document.getElementById('code-editor').value;
+            localStorage.setItem('APWE_PROJECT', JSON.stringify(files));
+            showToast('Project Auto-Saved!');
         }
 
-        // Code Editor Lines & Autocomplete Engine
-        function updateLineNumbers() {
-            if (!currentFile) return;
-            const linesCount = editor.value.split('\n').length;
-            linesPanel.innerHTML = Array.from({ length: Math.max(1, linesCount) }, (_, i) => i + 1).join('<br>');
-        }
+        function updatePreview() {
+            files[activeFile] = document.getElementById('code-editor').value;
+            const iframe = document.getElementById('preview-frame');
+            let htmlContent = files['index.html'] || '<h1>No index.html found</h1>';
 
-        let filteredSnippets = [];
-        let selectedIndex = 0;
-        let triggerWord = '';
-        let triggerStartPos = 0;
+            // Inject CSS & JS files automatically
+            let cssInject = '';
+            let jsInject = '';
 
-        function getLanguageMode() {
-            if (!currentFile) return 'js';
-            const ext = currentFile.split('.').pop().toLowerCase();
-            if (['html', 'htm'].includes(ext)) return 'html';
-            if (['js'].includes(ext)) return 'js';
-            if (['lua'].includes(ext)) return 'lua';
-            if (['py'].includes(ext)) return 'python';
-            if (['css'].includes(ext)) return 'css';
-            return 'js';
-        }
-
-        editor.addEventListener('input', () => {
-            if (!currentFile) return;
-            updateLineNumbers();
-            files[currentFile] = editor.value;
-            localStorage.setItem('apwe_studios_project', JSON.stringify(files));
-            handleAutocompleteCheck();
-        });
-
-        function handleAutocompleteCheck() {
-            const cursorPos = editor.selectionStart;
-            const textToCursor = editor.value.substring(0, cursorPos);
-            const match = textToCursor.match(/[a-zA-Z0-9_]+$/);
-
-            if (match) {
-                triggerWord = match[0];
-                triggerStartPos = cursorPos - triggerWord.length;
-                const mode = getLanguageMode();
-                const dict = snippets[mode] || snippets['js'];
-
-                filteredSnippets = Object.keys(dict).filter(k => k.startsWith(triggerWord.toLowerCase()));
-
-                if (filteredSnippets.length > 0) {
-                    showPopup(dict);
-                    return;
-                }
-            }
-            hidePopup();
-        }
-
-        function showPopup(dict) {
-            selectedIndex = 0;
-            popup.innerHTML = '';
-
-            filteredSnippets.forEach((key, index) => {
-                const item = document.createElement('div');
-                item.className = `suggestion-item ${index === 0 ? 'selected' : ''}`;
-                let preview = dict[key].insertText.split('\n')[0];
-                if (preview.length > 25) preview = preview.substring(0, 25) + '...';
-
-                item.innerHTML = `<span class="font-bold text-indigo-400">${key}</span> <span class="text-[11px] opacity-60 font-mono text-gray-300">${escapeHTML(preview)}</span>`;
-                item.onmousedown = (e) => { e.preventDefault(); applySnippet(key, dict[key]); };
-                popup.appendChild(item);
+            Object.keys(files).forEach(name => {
+                if (name.endsWith('.css')) cssInject += `<style>${files[name]}</style>`;
+                if (name.endsWith('.js') && name !== 'index.html') jsInject += `<script>${files[name]}<\/script>`;
             });
 
-            popup.style.top = '35px';
-            popup.style.left = '65px';
+            const fullContent = htmlContent.replace('</head>', `${cssInject}</head>`).replace('</body>', `${jsInject}</body>`);
+            iframe.srcdoc = fullContent;
+        }
+
+        /* AUTOCOMPLETE LOGIC */
+        function handleEditorInput(e) {
+            saveProject();
+            const editor = e.target;
+            const val = editor.value;
+            const pos = editor.selectionStart;
+            const leftText = val.slice(0, pos);
+            const wordMatch = leftText.match(/[\w\-]+$/);
+
+            if (!wordMatch) {
+                hideAutocomplete();
+                return;
+            }
+
+            const currentWord = wordMatch[0].toLowerCase();
+            const ext = activeFile.split('.').pop();
+            const activeSnippets = snippets[ext] || snippets['html'];
+
+            const matches = activeSnippets.filter(s => s.keyword.startsWith(currentWord));
+
+            if (matches.length > 0) {
+                showAutocomplete(matches, currentWord);
+            } else {
+                hideAutocomplete();
+            }
+        }
+
+        function showAutocomplete(matches, word) {
+            const popup = document.getElementById('autocomplete-popup');
+            popup.innerHTML = '';
+            matches.forEach((m, idx) => {
+                const item = document.createElement('div');
+                item.className = `suggestion-item ${idx === 0 ? 'selected' : ''}`;
+                item.innerHTML = `<span>${m.keyword}</span><span class="suggestion-type">${m.code.substring(0, 10)}...</span>`;
+                item.onclick = () => applySnippet(m, word);
+                popup.appendChild(item);
+            });
             popup.style.display = 'block';
+            popup.style.top = '40px';
+            popup.style.left = '20px';
         }
 
-        function hidePopup() {
-            popup.style.display = 'none';
-            filteredSnippets = [];
+        function hideAutocomplete() {
+            document.getElementById('autocomplete-popup').style.display = 'none';
         }
 
-        editor.addEventListener('keydown', (e) => {
-            if (popup.style.display === 'block' && filteredSnippets.length > 0) {
-                if (e.key === 'ArrowDown') {
-                    e.preventDefault();
-                    selectedIndex = (selectedIndex + 1) % filteredSnippets.length;
-                    updatePopupSelection();
-                } else if (e.key === 'ArrowUp') {
-                    e.preventDefault();
-                    selectedIndex = (selectedIndex - 1 + filteredSnippets.length) % filteredSnippets.length;
-                    updatePopupSelection();
-                } else if (e.key === 'Enter' || e.key === 'Tab') {
-                    e.preventDefault();
-                    const mode = getLanguageMode();
-                    const dict = snippets[mode] || snippets['js'];
-                    applySnippet(filteredSnippets[selectedIndex], dict[filteredSnippets[selectedIndex]]);
-                } else if (e.key === 'Escape') {
-                    hidePopup();
-                }
-            } else if (e.key === 'Tab') {
-                e.preventDefault();
-                const start = editor.selectionStart;
-                const end = editor.selectionEnd;
-                editor.value = editor.value.substring(0, start) + "    " + editor.value.substring(end);
-                editor.selectionStart = editor.selectionEnd = start + 4;
-                updateLineNumbers();
-            }
-        });
+        function applySnippet(snippet, word) {
+            const editor = document.getElementById('code-editor');
+            const val = editor.value;
+            const pos = editor.selectionStart;
+            const startPos = pos - word.length;
 
-        function updatePopupSelection() {
-            const items = popup.children;
-            for (let i = 0; i < items.length; i++) {
-                items[i].classList.toggle('selected', i === selectedIndex);
-            }
-        }
-
-        function applySnippet(key, snippetObj) {
-            const text = editor.value;
-            const textBefore = text.substring(0, triggerStartPos);
-            const textAfter = text.substring(editor.selectionStart);
-
-            editor.value = textBefore + snippetObj.insertText + textAfter;
-            const newCursor = triggerStartPos + snippetObj.insertText.length + snippetObj.offset;
-            editor.setSelectionRange(newCursor, newCursor);
-
-            files[currentFile] = editor.value;
-            hidePopup();
-            updateLineNumbers();
+            editor.value = val.slice(0, startPos) + snippet.code + val.slice(pos);
+            editor.selectionStart = editor.selectionEnd = startPos + snippet.code.length - snippet.offset;
+            hideAutocomplete();
             editor.focus();
         }
 
-        // Main Tab Switcher
-        function switchMainTab(tabId) {
-            ['editor', 'preview', 'ai'].forEach(id => {
-                const btn = document.getElementById(`nav-btn-${id}`);
-                const view = document.getElementById(`view-${id}`);
-
-                if (id === tabId) {
-                    view.classList.add('active');
-                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all bg-[var(--accent-color)] text-white shadow-md';
-                } else {
-                    view.classList.remove('active');
-                    btn.className = 'px-3.5 py-1.5 rounded-lg text-xs font-semibold flex items-center gap-2 transition-all text-gray-400 hover:text-white';
+        function handleKeyDown(e) {
+            if (e.key === 'Tab') {
+                const popup = document.getElementById('autocomplete-popup');
+                if (popup.style.display === 'block') {
+                    e.preventDefault();
+                    const selected = popup.querySelector('.suggestion-item.selected');
+                    if (selected) selected.click();
                 }
-            });
-
-            if (tabId === 'preview') refreshPreview();
-        }
-
-        function refreshPreview() {
-            if (currentFile && files.hasOwnProperty(currentFile)) files[currentFile] = editor.value;
-            const frame = document.getElementById('preview-frame');
-            let htmlContent = files['index.html'] || '';
-            const cssContent = files['style.css'] || '';
-            const jsContent = files['app.js'] || files['script.js'] || files['main.js'] || '';
-
-            if (htmlContent) {
-                if (cssContent) htmlContent = htmlContent.replace(/<\/head>/i, `<style>${cssContent}</style></head>`);
-                if (jsContent) htmlContent = htmlContent.replace(/<\/body>/i, `<script>${jsContent}<\/script></body>`);
-            } else if (jsContent || cssContent) {
-                htmlContent = `<!DOCTYPE html><html><head><style>${cssContent}</style></head><body><script>${jsContent}<\/script></body></html>`;
-            }
-
-            frame.srcdoc = htmlContent || "<div style='font-family:sans-serif; color:#64748b; padding:30px; text-align:center;'><h3>No HTML/JS code found</h3><p>Create index.html in APWE STUDIOS to preview.</p></div>";
-        }
-
-        // ================= APWE AI ASSISTANT (GEMINI & THINKING LOCK) =================
-        async function sendToGemini() {
-            const inputEl = document.getElementById('ai-input');
-            const promptText = inputEl.value.trim();
-            if (!promptText) return;
-
-            addChatMessage('You', promptText, 'justify-end');
-            inputEl.value = '';
-
-            // LOCK INPUT & BUTTON (THINKING STATE PROTECTION)
-            setAIThinking(true);
-
-            const loadingId = 'loading-' + Date.now();
-            addChatMessage('APWE AI', 'APWE AI is analyzing request...', 'justify-start', loadingId);
-
-            const apiKey = "";
-            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-3-flash-preview:generateContent?key=${apiKey}`;
-
-            const payload = {
-                contents: [{ parts: [{ text: promptText }] }],
-                systemInstruction: {
-                    parts: [{ text: "You are APWE AI, an expert programming and game development AI built for APWE STUDIOS IDE. STRICT RULE: Answer ONLY coding, programming, game logic, script, and software development questions. Politely decline any non-coding topics. Provide clean, well-explained code blocks with language tags." }]
-                }
-            };
-
-            try {
-                const response = await fetch(apiUrl, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify(payload)
-                });
-
-                const data = await response.json();
-                document.getElementById(loadingId)?.remove();
-
-                if (data.candidates && data.candidates[0].content) {
-                    const aiText = data.candidates[0].content.parts[0].text;
-                    const parsedHtml = marked.parse(aiText);
-                    addChatMessage('APWE AI', parsedHtml, 'justify-start', null, true, aiText);
-                } else {
-                    addChatMessage('APWE AI', 'Error retrieving code logic.', 'justify-start');
-                }
-            } catch (err) {
-                document.getElementById(loadingId)?.remove();
-                addChatMessage('APWE AI', 'Network error. Please check your connection.', 'justify-start');
-            } finally {
-                // UNLOCK INPUT & BUTTON WHEN FINISHED
-                setAIThinking(false);
             }
         }
 
-        function setAIThinking(isThinking) {
+        /* AI LOGIC & LOCK INPUT */
+        function sendAIMessage() {
+            if (aiThinking) return;
+
             const input = document.getElementById('ai-input');
-            const btn = document.getElementById('ai-send-btn');
-            const badge = document.getElementById('ai-thinking-badge');
+            const msg = input.value.trim();
+            if (!msg) return;
 
-            if (isThinking) {
-                input.disabled = true;
-                btn.disabled = true;
-                input.placeholder = currentLang === 'id' ? 'APWE AI sedang berpikir...' : 'APWE AI is thinking...';
-                badge.classList.remove('hidden');
-            } else {
+            appendChatMessage('user', msg);
+            input.value = '';
+
+            // Lock Input
+            aiThinking = true;
+            input.disabled = true;
+            input.placeholder = "APWE AI is thinking...";
+            document.getElementById('ai-send-btn').style.opacity = '0.5';
+
+            // Simulate / Call Gemini AI Logic
+            setTimeout(() => {
+                let aiResponse = "Here is a code snippet based on your request:\n\n";
+                if (msg.toLowerCase().includes('game') || msg.toLowerCase().includes('canvas')) {
+                    aiResponse += "```html\n<canvas id='g' width='400' height='400' style='background:#000'></canvas>\n<script>\nconst c=document.getElementById('g').getContext('2d');\nlet x=50;\nfunction loop(){\nc.clearRect(0,0,400,400);\nc.fillStyle='red';\nc.fillRect(x++,50,30,30);\nrequestAnimationFrame(loop);\n}\nloop();\n<\/script>\n```";
+                } else {
+                    aiResponse += "```javascript\n// Helper Function\nfunction createPlayer(name) {\n    return { name, score: 0 };\n}\n```";
+                }
+
+                appendChatMessage('ai', aiResponse);
+
+                // Unlock Input
+                aiThinking = false;
                 input.disabled = false;
-                btn.disabled = false;
-                input.placeholder = currentLang === 'id' ? 'Tanyakan kode atau skrip game...' : 'Ask APWE AI to write a Lua game script or HTML layout...';
-                badge.classList.add('hidden');
-                input.focus();
-            }
+                input.placeholder = "Type your coding request...";
+                document.getElementById('ai-send-btn').style.opacity = '1';
+            }, 1200);
         }
 
-        function addChatMessage(sender, content, alignment, id = null, isHtml = false, rawText = "") {
-            const box = document.getElementById('ai-chat-box');
-            const wrapper = document.createElement('div');
-            wrapper.className = `flex gap-3 ${alignment}`;
-            if (id) wrapper.id = id;
+        function appendChatMessage(role, text) {
+            const box = document.getElementById('chat-box');
+            const msgDiv = document.createElement('div');
+            msgDiv.className = `chat-msg ${role}`;
 
-            if (sender === 'You') {
-                wrapper.innerHTML = `
-                    <div class="flex gap-2 max-w-xl ml-auto flex-row-reverse">
-                        <div class="w-8 h-8 rounded-lg bg-indigo-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-md">
-                            <i class="ph-bold ph-user"></i>
-                        </div>
-                        <div class="bg-indigo-600 text-white p-3 rounded-2xl rounded-tr-none text-xs shadow-md">
-                            ${escapeHTML(content)}
-                        </div>
-                    </div>
-                `;
+            if (text.includes('```')) {
+                const parts = text.split(/```/);
+                msgDiv.appendChild(document.createTextNode(parts[0]));
+
+                const codeContent = parts[1].replace(/^(html|javascript|css|python|lua)/, '');
+                const codeHeader = document.createElement('div');
+                codeHeader.className = 'code-block-header';
+                codeHeader.innerHTML = `<span>CODE</span><button class="copy-btn" onclick="copyToClipboard(\`${codeContent.trim()}\`)">Copy Code</button>`;
+
+                const pre = document.createElement('pre');
+                pre.style.background = '#000';
+                pre.style.padding = '10px';
+                pre.style.borderRadius = '4px';
+                pre.style.overflowX = 'auto';
+                pre.innerText = codeContent.trim();
+
+                msgDiv.appendChild(codeHeader);
+                msgDiv.appendChild(pre);
             } else {
-                const displayHtml = isHtml ? content : escapeHTML(content);
-
-                wrapper.innerHTML = `
-                    <div class="flex gap-3 max-w-3xl justify-start w-full">
-                        <div class="w-8 h-8 rounded-lg bg-purple-600 text-white flex items-center justify-center font-bold text-xs flex-shrink-0 shadow-md">
-                            <i class="ph-bold ph-robot"></i>
-                        </div>
-                        <div class="bg-[var(--bg-surface)] p-4 rounded-2xl rounded-tl-none text-xs text-gray-200 border border-[var(--bg-border)] ai-content w-full relative group shadow-md overflow-hidden">
-                            ${displayHtml}
-                        </div>
-                    </div>
-                `;
+                msgDiv.innerText = text;
             }
-            box.appendChild(wrapper);
-            decorateCodeBlocks(wrapper);
+
+            box.appendChild(msgDiv);
             box.scrollTop = box.scrollHeight;
         }
 
-        // Add Copy Code Buttons to AI Code blocks
-        function decorateCodeBlocks(container) {
-            const pres = container.querySelectorAll('pre');
-            pres.forEach((pre) => {
-                if (pre.parentNode.classList.contains('code-block-wrapper')) return;
-
-                const wrapper = document.createElement('div');
-                wrapper.className = 'code-block-wrapper relative group my-3 border border-[var(--bg-border)] rounded-xl overflow-hidden';
-
-                const header = document.createElement('div');
-                header.className = 'flex justify-between items-center px-3 py-1.5 bg-[#0d0e14] text-[11px] text-gray-400 font-mono border-b border-[var(--bg-border)]';
-                header.innerHTML = `
-                    <span class="flex items-center gap-1"><i class="ph-bold ph-code"></i> Code</span>
-                    <button class="copy-btn px-2 py-0.5 bg-gray-800 hover:bg-gray-700 text-white rounded text-[11px] flex items-center gap-1 transition-colors">
-                        <i class="ph-bold ph-copy"></i> Copy Code
-                    </button>
-                `;
-
-                pre.parentNode.insertBefore(wrapper, pre);
-                wrapper.appendChild(header);
-                wrapper.appendChild(pre);
-
-                const copyBtn = header.querySelector('.copy-btn');
-                copyBtn.addEventListener('click', () => {
-                    const codeText = pre.querySelector('code') ? pre.querySelector('code').innerText : pre.innerText;
-                    execCopyText(codeText, copyBtn);
-                });
-            });
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text);
+            showToast('Code copied to clipboard!');
         }
 
-        function execCopyText(text, btn) {
-            const textarea = document.createElement('textarea');
-            textarea.value = text;
-            textarea.style.position = 'fixed';
-            textarea.style.opacity = '0';
-            document.body.appendChild(textarea);
-            textarea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textarea);
-
-            const origHtml = btn.innerHTML;
-            btn.innerHTML = `<i class="ph-bold ph-check text-emerald-400"></i> Copied!`;
-            setTimeout(() => { btn.innerHTML = origHtml; }, 2000);
+        /* DOWNLOAD APP & DEPLOY */
+        function downloadApp() {
+            files[activeFile] = document.getElementById('code-editor').value;
+            const content = files['index.html'] || '';
+            const blob = new Blob([content], { type: 'text/html' });
+            const a = document.createElement('a');
+            a.href = URL.createObjectURL(blob);
+            a.download = 'APWE_App.html';
+            a.click();
+            showToast('App HTML File Downloaded!');
         }
 
-        function escapeHTML(str) {
-            return str.replace(/[&<>'"]/g, tag => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[tag]));
-        }
-
-        // Modals & UI Controls
-        function openModal(id) { document.getElementById(id).classList.add('active'); }
-        function closeModal(id) { document.getElementById(id).classList.remove('active'); }
-
-        function showToast(msg, type = 'info') {
-            const t = document.getElementById('toast-box');
-            const icon = document.getElementById('toast-icon');
-            document.getElementById('toast-text').innerText = msg;
-
-            if (type === 'error') {
-                t.className = "fixed top-5 right-5 px-4 py-2.5 rounded-xl shadow-2xl transition-all transform translate-x-0 opacity-100 z-[100] font-medium text-xs flex items-center gap-2 bg-rose-900 text-rose-100 border border-rose-700";
-                icon.className = "ph-fill ph-warning-circle text-base";
-            } else {
-                t.className = "fixed top-5 right-5 px-4 py-2.5 rounded-xl shadow-2xl transition-all transform translate-x-0 opacity-100 z-[100] font-medium text-xs flex items-center gap-2 bg-emerald-900 text-emerald-100 border border-emerald-700";
-                icon.className = "ph-fill ph-check-circle text-base";
-            }
-
-            setTimeout(() => {
-                t.classList.remove('translate-x-0', 'opacity-100');
-                t.classList.add('translate-x-48', 'opacity-0');
-            }, 3000);
-        }
-
-        function setTheme(theme) {
-            document.body.className = `h-full flex flex-col font-sans theme-${theme}`;
-            showToast(`Theme changed to ${theme.toUpperCase()}`, 'info');
-        }
-
-        function setLang(lang) {
-            currentLang = lang;
-            document.getElementById('lang-btn-en').className = lang === 'en' ? "flex-1 py-2 bg-[var(--accent-color)] text-white rounded-xl text-xs font-bold" : "flex-1 py-2 bg-[var(--bg-topbar)] border border-[var(--bg-border)] text-gray-400 rounded-xl text-xs font-bold";
-            document.getElementById('lang-btn-id').className = lang === 'id' ? "flex-1 py-2 bg-[var(--accent-color)] text-white rounded-xl text-xs font-bold" : "flex-1 py-2 bg-[var(--bg-topbar)] border border-[var(--bg-border)] text-gray-400 rounded-xl text-xs font-bold";
-
-            document.querySelectorAll('[data-i18n]').forEach(el => {
-                const key = el.getAttribute('data-i18n');
-                if (i18nDict[lang][key]) el.innerText = i18nDict[lang][key];
-            });
-        }
-
-        function togglePerm(btn, permName) {
-            const circle = btn.querySelector('div');
-            if (btn.classList.contains('bg-indigo-600')) {
-                btn.classList.replace('bg-indigo-600', 'bg-gray-700');
-                circle.style.transform = 'translateX(0)';
-                showToast(`Permission '${permName}' revoked.`, 'info');
-            } else {
-                btn.classList.replace('bg-gray-700', 'bg-indigo-600');
-                circle.style.transform = 'translateX(20px)';
-                showToast(`Permission '${permName}' granted.`, 'success');
-            }
-        }
-
-        function simulateDeploy() {
-            const platform = document.getElementById('deploy-platform').value;
-            const token = document.getElementById('deploy-token').value.trim();
+        function executeDeploy() {
+            const token = document.getElementById('deploy-token').value;
             if (!token) {
-                showToast('Please provide a deployment token!', 'error');
+                showToast('Please enter a valid Token!');
                 return;
             }
-            closeModal('modal-deploy');
-            showToast(`Project successfully deployed to ${platform.toUpperCase()}!`, 'success');
+            showToast('Deploying to platform...');
+            setTimeout(() => {
+                closeModal('deploy-modal');
+                showToast('Website Successfully Deployed!');
+            }, 1500);
+        }
+
+        function changeTheme(theme) {
+            document.body.className = `theme-${theme}`;
+        }
+
+        function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+        function closeModal(id) { document.getElementById(id).style.display = 'none'; }
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            toast.innerText = msg;
+            toast.style.display = 'block';
+            setTimeout(() => toast.style.display = 'none', 2500);
         }
     </script>
 </body>
 </html>
-```
