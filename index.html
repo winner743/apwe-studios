@@ -2,672 +2,526 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>APWE STUDIOS - Code & Game Engine</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>APWE STUDIOS</title>
+    
+    <!-- PWA Manifest & Mobile Config -->
+    <meta name="theme-color" content="#0f172a">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="manifest" href="data:application/manifest+json,{%22name%22:%22APWE%20STUDIOS%22,%22short_name%22:%22APWE%22,%22start_url%22:%22.%22,%22display%22:%22standalone%22,%22background_color%22:%22%230f172a%22,%22theme_color%22:%22%236366f1%22}">
+    
+    <!-- FontAwesome Icons -->
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-primary: #0f172a;
-            --bg-secondary: #1e293b;
+            --bg-main: #0f172a;
+            --bg-card: #1e293b;
             --bg-editor: #090d16;
-            --text-main: #f8fafc;
+            --accent: #6366f1;
+            --text: #f8fafc;
             --text-muted: #94a3b8;
-            --accent-color: #6366f1;
-            --accent-hover: #4f46e5;
-            --border-color: #334155;
-            --active-tab: #312e81;
+            --border: #334155;
         }
 
-        /* Color Themes */
-        body.theme-slate { --bg-primary: #0f172a; --bg-secondary: #1e293b; --bg-editor: #090d16; --accent-color: #6366f1; }
-        body.theme-cyberpunk { --bg-primary: #120024; --bg-secondary: #2a004f; --bg-editor: #090014; --accent-color: #ff007f; }
-        body.theme-oled { --bg-primary: #000000; --bg-secondary: #111111; --bg-editor: #000000; --accent-color: #10b981; }
-        body.theme-navy { --bg-primary: #0a192f; --bg-secondary: #112240; --bg-editor: #020c1b; --accent-color: #64ffda; }
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; -webkit-tap-highlight-color: transparent; }
+        html, body { width: 100%; height: 100%; overflow: hidden; background: var(--bg-main); color: var(--text); }
 
-        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background: var(--bg-primary); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; overflow: hidden; }
+        /* Full App Layout */
+        .app-shell { display: flex; flex-direction: column; height: 100vh; width: 100vw; }
 
-        /* Top Header Navigation */
+        /* Modern Top Bar */
         header {
-            background: var(--bg-secondary);
-            height: 55px;
+            background: var(--bg-card);
+            height: 50px;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 15px;
-            border-bottom: 1px solid var(--border-color);
+            padding: 0 10px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
-        .brand { display: flex; align-items: center; gap: 10px; font-weight: bold; font-size: 1.1rem; }
-        .brand-badge { background: var(--accent-color); padding: 3px 8px; borderRadius: 4px; font-size: 0.75rem; text-transform: uppercase; }
 
-        .nav-tabs { display: flex; gap: 5px; background: rgba(0,0,0,0.2); padding: 4px; border-radius: 8px; }
+        .brand { font-weight: 800; font-size: 0.95rem; color: var(--text); display: flex; align-items: center; gap: 6px; }
+        .brand i { color: var(--accent); }
+
+        /* Navigation Buttons */
+        .nav-group { display: flex; gap: 4px; background: rgba(0,0,0,0.3); padding: 3px; border-radius: 8px; }
         .nav-btn {
-            padding: 6px 14px;
+            padding: 6px 10px;
             border: none;
             background: transparent;
             color: var(--text-muted);
-            font-size: 0.85rem;
-            cursor: pointer;
-            border-radius: 6px;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-            transition: all 0.2s ease;
-        }
-        .nav-btn.active { background: var(--accent-color); color: white; }
-
-        .action-btns { display: flex; gap: 8px; align-items: center; }
-        .icon-btn {
-            background: var(--bg-primary);
-            color: var(--text-main);
-            border: 1px solid var(--border-color);
-            padding: 8px 12px;
+            font-size: 0.75rem;
+            font-weight: 600;
             border-radius: 6px;
             cursor: pointer;
-            font-size: 0.85rem;
             display: flex;
             align-items: center;
-            gap: 6px;
-            transition: 0.2s;
+            gap: 4px;
         }
-        .icon-btn:hover { border-color: var(--accent-color); }
+        .nav-btn.active { background: var(--accent); color: #fff; }
 
-        /* View Panels & Animations */
-        .main-container { flex: 1; position: relative; overflow: hidden; }
-        .view-panel {
+        .top-actions { display: flex; gap: 6px; }
+        .action-icon {
+            background: var(--bg-main);
+            border: 1px solid var(--border);
+            color: var(--text);
+            width: 34px;
+            height: 34px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.85rem;
+            cursor: pointer;
+        }
+        .action-icon.highlight { background: var(--accent); border-color: var(--accent); color: white; }
+
+        /* Main Content View Container */
+        main { flex: 1; position: relative; width: 100%; height: calc(100vh - 50px); overflow: hidden; }
+        .view-page {
             position: absolute;
             top: 0; left: 0; width: 100%; height: 100%;
             display: none;
-            opacity: 0;
-            transform: translateY(10px);
-            transition: opacity 0.3s ease, transform 0.3s ease;
+            flex-direction: column;
         }
-        .view-panel.active { display: flex; opacity: 1; transform: translateY(0); }
+        .view-page.active { display: flex; }
 
-        /* CODING PANEL */
-        .editor-workspace { flex: 1; display: flex; flex-direction: column; background: var(--bg-editor); }
-        
-        /* Top File Tabs Bar */
-        .file-tabs-bar {
-            background: var(--bg-secondary);
+        /* EDITOR VIEW */
+        .tab-bar {
+            background: #162032;
             display: flex;
             align-items: center;
             overflow-x: auto;
-            border-bottom: 1px solid var(--border-color);
-            padding-top: 5px;
-            padding-left: 10px;
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
         }
         .file-tab {
-            padding: 8px 16px;
-            background: rgba(0,0,0,0.3);
+            padding: 8px 12px;
+            font-size: 0.8rem;
             color: var(--text-muted);
-            font-size: 0.85rem;
-            border-radius: 6px 6px 0 0;
-            margin-right: 4px;
-            cursor: pointer;
+            background: rgba(0,0,0,0.2);
+            border-right: 1px solid var(--border);
             display: flex;
             align-items: center;
-            gap: 8px;
-            border: 1px solid transparent;
-            border-bottom: none;
+            gap: 6px;
+            cursor: pointer;
+            white-space: nowrap;
         }
-        .file-tab.active { background: var(--bg-editor); color: var(--text-main); border-color: var(--border-color); font-weight: bold; }
-        .file-tab .close-file { font-size: 0.75rem; opacity: 0.6; }
-        .file-tab .close-file:hover { opacity: 1; color: #ef4444; }
-        .add-file-btn { background: none; border: none; color: var(--text-muted); padding: 8px 12px; cursor: pointer; font-size: 0.9rem; }
+        .file-tab.active { background: var(--bg-editor); color: var(--text); font-weight: bold; border-bottom: 2px solid var(--accent); }
+        .add-tab-btn { padding: 8px 12px; color: var(--accent); background: none; border: none; font-size: 0.9rem; cursor: pointer; }
 
-        /* Code Input Area */
-        .editor-container { flex: 1; position: relative; display: flex; }
-        textarea.code-editor {
-            width: 100%; height: 100%;
+        .editor-box { flex: 1; position: relative; width: 100%; height: 100%; }
+        textarea.code-area {
+            width: 100%;
+            height: 100%;
             background: var(--bg-editor);
-            color: #e2e8f0;
+            color: #38bdf8;
             border: none;
             outline: none;
-            padding: 15px;
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 1rem;
-            line-height: 1.5;
+            padding: 12px;
+            font-family: monospace;
+            font-size: 0.9rem;
+            line-height: 1.4;
             resize: none;
-            tab-size: 4;
         }
 
-        /* Autocomplete Suggestion Popup */
-        .autocomplete-popup {
+        /* Autocomplete Box */
+        .suggest-box {
             position: absolute;
-            background: var(--bg-secondary);
-            border: 1px solid var(--border-color);
-            border-radius: 6px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-            max-height: 180px;
+            bottom: 10px;
+            left: 10px;
+            right: 10px;
+            background: var(--bg-card);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            max-height: 140px;
             overflow-y: auto;
             display: none;
-            z-index: 100;
-            width: 220px;
+            z-index: 50;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.6);
         }
-        .suggestion-item {
-            padding: 8px 12px;
-            cursor: pointer;
+        .suggest-item {
+            padding: 10px 14px;
             font-size: 0.85rem;
+            color: var(--text);
+            border-bottom: 1px solid var(--border);
             display: flex;
             justify-content: space-between;
-            color: var(--text-main);
         }
-        .suggestion-item:hover, .suggestion-item.selected { background: var(--accent-color); color: white; }
-        .suggestion-type { font-size: 0.7rem; opacity: 0.7; }
+        .suggest-item:hover, .suggest-item.active { background: var(--accent); color: white; }
 
-        /* PREVIEW PANEL */
+        /* PREVIEW VIEW */
         #preview-frame { width: 100%; height: 100%; border: none; background: white; }
 
-        /* AI PANEL */
-        .ai-panel { flex-direction: column; background: var(--bg-primary); padding: 20px; gap: 15px; }
-        .chat-box { flex: 1; background: var(--bg-secondary); border-radius: 8px; padding: 15px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border-color); }
-        .chat-msg { max-width: 80%; padding: 12px 16px; border-radius: 10px; font-size: 0.9rem; line-height: 1.4; position: relative; }
-        .chat-msg.user { background: var(--accent-color); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
-        .chat-msg.ai { background: var(--bg-editor); color: var(--text-main); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--border-color); }
-        .code-block-header { display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.1); padding: 4px 8px; border-radius: 4px; font-family: monospace; font-size: 0.75rem; margin-top: 8px; }
-        .copy-btn { background: var(--accent-color); border: none; color: white; padding: 2px 8px; border-radius: 4px; cursor: pointer; font-size: 0.7rem; }
-        .ai-input-container { display: flex; gap: 10px; }
-        .ai-input { flex: 1; background: var(--bg-secondary); border: 1px solid var(--border-color); padding: 12px; border-radius: 8px; color: var(--text-main); outline: none; }
-        .ai-input:disabled { opacity: 0.5; cursor: not-allowed; }
+        /* AI CHAT VIEW */
+        .chat-container { flex: 1; padding: 12px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .msg { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 0.85rem; line-height: 1.4; }
+        .msg.user { background: var(--accent); color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .msg.ai { background: var(--bg-card); color: var(--text); align-self: flex-start; border-bottom-left-radius: 2px; border: 1px solid var(--border); }
+        .msg-code { background: #000; padding: 8px; border-radius: 6px; font-family: monospace; font-size: 0.8rem; margin-top: 6px; overflow-x: auto; position: relative; }
+        .copy-code-btn { position: absolute; top: 4px; right: 4px; background: var(--accent); border: none; color: white; padding: 2px 6px; border-radius: 4px; font-size: 0.65rem; cursor: pointer; }
 
-        /* MODAL DIALOGS */
-        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000; }
-        .modal { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 10px; width: 90%; max-width: 500px; padding: 20px; display: flex; flex-direction: column; gap: 15px; }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--border-color); padding-bottom: 10px; }
-        .perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; max-height: 250px; overflow-y: auto; }
-        .perm-item { display: flex; align-items: center; justify-content: space-between; background: var(--bg-primary); padding: 8px 12px; border-radius: 6px; font-size: 0.85rem; }
+        .chat-input-bar { padding: 10px; background: var(--bg-card); display: flex; gap: 8px; border-top: 1px solid var(--border); }
+        .chat-input { flex: 1; background: var(--bg-main); border: 1px solid var(--border); border-radius: 8px; padding: 8px 12px; color: var(--text); outline: none; font-size: 0.85rem; }
+        .chat-input:disabled { opacity: 0.5; }
 
-        /* Quick Add Modal Preset */
-        .preset-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
-        .preset-btn { background: var(--bg-primary); border: 1px solid var(--border-color); color: var(--text-main); padding: 10px; border-radius: 6px; cursor: pointer; text-align: center; }
-        .preset-btn:hover { border-color: var(--accent-color); }
+        /* MODAL */
+        .modal-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 100; padding: 15px; }
+        .modal-card { background: var(--bg-card); border-radius: 12px; width: 100%; max-width: 360px; padding: 18px; display: flex; flex-direction: column; gap: 12px; border: 1px solid var(--border); }
+        .modal-head { display: flex; justify-content: space-between; align-items: center; font-weight: bold; }
+        .btn-full { width: 100%; padding: 10px; background: var(--accent); border: none; border-radius: 8px; color: white; font-weight: bold; cursor: pointer; }
 
-        /* Toast Notifications */
-        .toast { position: fixed; bottom: 20px; right: 20px; background: var(--accent-color); color: white; padding: 10px 20px; border-radius: 6px; display: none; z-index: 2000; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
+        /* Toast */
+        .toast { position: fixed; top: 60px; left: 50%; transform: translateX(-50%); background: var(--accent); color: white; padding: 6px 16px; border-radius: 20px; font-size: 0.8rem; display: none; z-index: 200; box-shadow: 0 4px 12px rgba(0,0,0,0.3); }
     </style>
 </head>
-<body class="theme-slate">
+<body>
 
-    <!-- Top Navigation Bar -->
-    <header>
-        <div class="brand">
-            <i class="fa-solid fa-code"></i>
-            <span>APWE STUDIOS</span>
-            <span class="brand-badge">IDE v2.5</span>
-        </div>
+    <div class="app-shell">
+        <!-- Top Navigation Bar -->
+        <header>
+            <div class="brand">
+                <i class="fa-solid fa-code"></i> APWE
+            </div>
 
-        <div class="nav-tabs">
-            <button class="nav-btn active" onclick="switchView('coding')"><i class="fa-solid fa-code"></i> Coding</button>
-            <button class="nav-btn" onclick="switchView('preview')"><i class="fa-solid fa-eye"></i> Preview</button>
-            <button class="nav-btn" onclick="switchView('ai')"><i class="fa-solid fa-wand-magic-sparkles"></i> APWE AI</button>
-        </div>
+            <div class="nav-group">
+                <button class="nav-btn active" onclick="showPage('editor')"><i class="fa-solid fa-code"></i> Code</button>
+                <button class="nav-btn" onclick="showPage('preview')"><i class="fa-solid fa-play"></i> Run</button>
+                <button class="nav-btn" onclick="showPage('ai')"><i class="fa-solid fa-robot"></i> AI</button>
+            </div>
 
-        <div class="action-btns">
-            <button class="icon-btn" onclick="saveProject()"><i class="fa-solid fa-floppy-disk"></i> Save</button>
-            <button class="icon-btn" onclick="openModal('deploy-modal')"><i class="fa-solid fa-rocket"></i> Deploy</button>
-            <button class="icon-btn" onclick="downloadApp()"><i class="fa-solid fa-download"></i> Download App</button>
-            <button class="icon-btn" onclick="openModal('settings-modal')"><i class="fa-solid fa-gear"></i> Settings</button>
-        </div>
-    </header>
+            <div class="top-actions">
+                <button class="action-icon highlight" id="install-btn" onclick="installPWA()" title="Install App"><i class="fa-solid fa-download"></i></button>
+                <button class="action-icon" onclick="saveCode()"><i class="fa-solid fa-floppy-disk"></i></button>
+                <button class="action-icon" onclick="openModal('settings-modal')"><i class="fa-solid fa-sliders"></i></button>
+            </div>
+        </header>
 
-    <!-- Main Workspace Container -->
-    <div class="main-container">
-        
-        <!-- PANEL 1: CODING EDITOR -->
-        <div id="coding-panel" class="view-panel active">
-            <div class="editor-workspace">
-                <div class="file-tabs-bar" id="file-tabs-bar">
-                    <!-- Tabs rendered dynamically -->
-                    <button class="add-file-btn" onclick="openModal('add-file-modal')"><i class="fa-solid fa-plus"></i></button>
+        <!-- Main Pages Container -->
+        <main>
+            <!-- PAGE 1: EDITOR -->
+            <div id="editor-page" class="view-page active">
+                <div class="tab-bar" id="tab-bar">
+                    <!-- Dynamic File Tabs -->
                 </div>
-                <div class="editor-container">
-                    <textarea id="code-editor" class="code-editor" spellcheck="false" placeholder="Write your script or markup here..."></textarea>
-                    <div id="autocomplete-popup" class="autocomplete-popup"></div>
+                <div class="editor-box">
+                    <textarea id="code-editor" class="code-area" spellcheck="false" placeholder="Write HTML/JS script..."></textarea>
+                    <div id="suggest-box" class="suggest-box"></div>
                 </div>
             </div>
-        </div>
 
-        <!-- PANEL 2: LIVE PREVIEW -->
-        <div id="preview-panel" class="view-panel">
-            <iframe id="preview-frame"></iframe>
-        </div>
+            <!-- PAGE 2: PREVIEW -->
+            <div id="preview-page" class="view-page">
+                <iframe id="preview-frame"></iframe>
+            </div>
 
-        <!-- PANEL 3: APWE AI ASSISTANT -->
-        <div id="ai-panel" class="view-panel ai-panel">
-            <div class="chat-box" id="chat-box">
-                <div class="chat-msg ai">
-                    Hello! I am <strong>APWE AI</strong>, your dedicated coding and game developer assistant. Ask me to write scripts, fix bugs, or build game mechanics!
+            <!-- PAGE 3: APWE AI -->
+            <div id="ai-page" class="view-page">
+                <div class="chat-container" id="chat-box">
+                    <div class="msg ai">
+                        Halo! Saya <strong>APWE AI Assistant</strong>. Minta saya buatkan kode game, script HTML, atau logika Javascript.
+                    </div>
+                </div>
+                <div class="chat-input-bar">
+                    <input type="text" id="chat-input" class="chat-input" placeholder="Tulis instruksi coding..." onkeypress="if(event.key==='Enter') sendAI()">
+                    <button class="action-icon highlight" id="send-btn" onclick="sendAI()"><i class="fa-solid fa-paper-plane"></i></button>
                 </div>
             </div>
-            <div class="ai-input-container">
-                <input type="text" id="ai-input" class="ai-input" placeholder="Type your coding request (e.g., Make a canvas bounce game)..." onkeypress="if(event.key==='Enter') sendAIMessage()">
-                <button class="icon-btn" id="ai-send-btn" onclick="sendAIMessage()" style="background: var(--accent-color); color: white;"><i class="fa-solid fa-paper-plane"></i> Send</button>
-            </div>
-        </div>
-
+        </main>
     </div>
 
-    <!-- MODAL 1: ADD FILE -->
-    <div id="add-file-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Add New File (Max 40)</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('add-file-modal')"></i>
+    <!-- MODAL: ADD FILE -->
+    <div id="add-modal" class="modal-bg">
+        <div class="modal-card">
+            <div class="modal-head">
+                <span>Tambah File Baru</span>
+                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('add-modal')"></i>
             </div>
-            <p style="font-size:0.85rem; color:var(--text-muted)">Choose a preset or type a custom file name:</p>
-            <div class="preset-grid">
-                <button class="preset-btn" onclick="createFile('index.html')">index.html</button>
-                <button class="preset-btn" onclick="createFile('style.css')">style.css</button>
-                <button class="preset-btn" onclick="createFile('app.js')">app.js</button>
-                <button class="preset-btn" onclick="createFile('main.py')">main.py</button>
-                <button class="preset-btn" onclick="createFile('game.lua')">game.lua</button>
+            <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px;">
+                <button class="nav-btn active" style="justify-content:center; padding:10px;" onclick="addPresetFile('index.html')">index.html</button>
+                <button class="nav-btn active" style="justify-content:center; padding:10px;" onclick="addPresetFile('style.css')">style.css</button>
+                <button class="nav-btn active" style="justify-content:center; padding:10px;" onclick="addPresetFile('app.js')">app.js</button>
+                <button class="nav-btn active" style="justify-content:center; padding:10px;" onclick="addPresetFile('game.lua')">game.lua</button>
             </div>
-            <div style="display:flex; gap:8px;">
-                <input type="text" id="custom-file-name" class="ai-input" placeholder="custom_script.js">
-                <button class="icon-btn" onclick="createCustomFile()">Add</button>
-            </div>
+            <input type="text" id="new-filename" class="chat-input" placeholder="Nama file kustom...">
+            <button class="btn-full" onclick="addCustomFile()">Buat File</button>
         </div>
     </div>
 
-    <!-- MODAL 2: DEPLOY -->
-    <div id="deploy-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Deploy Website</h3>
-                <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('deploy-modal')"></i>
-            </div>
-            <p style="font-size:0.85rem; color:var(--text-muted)">Enter your platform token to deploy instantly:</p>
-            <label style="font-size:0.8rem">Deploy Platform:</label>
-            <select id="deploy-target" class="ai-input">
-                <option value="github">GitHub Pages</option>
-                <option value="vercel">Vercel</option>
-                <option value="netlify">Netlify</option>
-            </select>
-            <input type="password" id="deploy-token" class="ai-input" placeholder="Paste Access Token / Auth Key">
-            <button class="icon-btn" onclick="executeDeploy()" style="background:var(--accent-color); color:white; justify-content:center;">Deploy Now</button>
-        </div>
-    </div>
-
-    <!-- MODAL 3: SETTINGS -->
-    <div id="settings-modal" class="modal-overlay">
-        <div class="modal">
-            <div class="modal-header">
-                <h3>Settings & Permissions</h3>
+    <!-- MODAL: SETTINGS & PERMISSIONS -->
+    <div id="settings-modal" class="modal-bg">
+        <div class="modal-card">
+            <div class="modal-head">
+                <span>Pengaturan & Izin</span>
                 <i class="fa-solid fa-xmark" style="cursor:pointer" onclick="closeModal('settings-modal')"></i>
             </div>
-            <label style="font-size:0.85rem">Theme:</label>
-            <select onchange="changeTheme(this.value)" class="ai-input">
-                <option value="slate">Slate Dark</option>
-                <option value="cyberpunk">Cyberpunk Neon</option>
-                <option value="oled">OLED Pitch Black</option>
-                <option value="navy">Deep Navy</option>
-            </select>
-            <div class="modal-header" style="margin-top:10px;">
-                <h4>Device Permissions</h4>
-            </div>
-            <div class="perm-grid">
-                <div class="perm-item">GPS Location <input type="checkbox" checked></div>
-                <div class="perm-item">Camera Access <input type="checkbox" checked></div>
-                <div class="perm-item">Microphone <input type="checkbox" checked></div>
-                <div class="perm-item">Interactive Maps <input type="checkbox" checked></div>
-                <div class="perm-item">Notifications <input type="checkbox"></div>
-                <div class="perm-item">Gyroscope Sensor <input type="checkbox" checked></div>
-                <div class="perm-item">Bluetooth API <input type="checkbox"></div>
-                <div class="perm-item">Storage Read/Write <input type="checkbox" checked></div>
-                <div class="perm-item">Clipboard Copy/Paste <input type="checkbox" checked></div>
-                <div class="perm-item">Background Sync <input type="checkbox"></div>
-            </div>
+            <button class="btn-full" onclick="requestDevicePermissions()"><i class="fa-solid fa-shield-halved"></i> Minta Izin Kamera & GPS</button>
+            <button class="btn-full" style="background:#059669;" onclick="downloadProject()"><i class="fa-solid fa-file-arrow-down"></i> Download Sebagai App HTML</button>
         </div>
     </div>
 
-    <!-- Toast Component -->
-    <div id="toast" class="toast">Message</div>
+    <!-- Toast Notification -->
+    <div id="toast" class="toast">Info</div>
 
     <script>
-        // Global Project State
-        let files = {};
-        let activeFile = '';
-        let aiThinking = false;
+        // Project State
+        let files = JSON.parse(localStorage.getItem('APWE_FILES') || '{"index.html":""}');
+        let activeFile = Object.keys(files)[0] || 'index.html';
+        let deferredPrompt = null;
+        let aiLock = false;
 
-        // Snippet Libraries per Model
-        const snippets = {
-            html: [
-                { keyword: 'h1', code: '<h1></h1>', offset: 5 },
-                { keyword: 'h2', code: '<h2></h2>', offset: 5 },
-                { keyword: 'h3', code: '<h3></h3>', offset: 5 },
-                { keyword: 'html', code: '<!DOCTYPE html>\n<html>\n<head>\n\t<title></title>\n</head>\n<body>\n\n</body>\n</html>', offset: 0 },
-                { keyword: 'div', code: '<div></div>', offset: 6 },
-                { keyword: 'p', code: '<p></p>', offset: 4 },
-                { keyword: 'a', code: '<a href=""></a>', offset: 9 },
-                { keyword: 'script', code: '<script>\n\t\n<\/script>', offset: 10 },
-                { keyword: 'style', code: '<style>\n\t\n</style>', offset: 9 }
-            ],
-            js: [
-                { keyword: 'fun', code: 'function name() {\n\t\n}', offset: 14 },
-                { keyword: 'for', code: 'for (let i = 0; i < length; i++) {\n\t\n}', offset: 33 },
-                { keyword: 'if', code: 'if (condition) {\n\t\n}', offset: 15 },
-                { keyword: 'log', code: 'console.log();', offset: 12 },
-                { keyword: 'fetch', code: 'fetch(url).then(res => res.json()).then(data => {\n\t\n});', offset: 10 }
-            ],
-            py: [
-                { keyword: 'def', code: 'def function_name():\n\tpass', offset: 18 },
-                { keyword: 'if', code: 'if __name__ == "__main__":\n\tpass', offset: 27 },
-                { keyword: 'for', code: 'for item in iterable:\n\tpass', offset: 22 }
-            ],
-            lua: [
-                { keyword: 'fun', code: 'function name()\n\t\nend', offset: 14 },
-                { keyword: 'if', code: 'if condition then\n\t\nend', offset: 17 }
-            ],
-            css: [
-                { keyword: 'hover', code: ':hover {\n\t\n}', offset: 8 },
-                { keyword: 'flex', code: 'display: flex;\njustify-content: center;\nalign-items: center;', offset: 0 }
-            ]
+        // Auto Code Snippets (Instant Match)
+        const codeSnippets = {
+            'h1': '<h1></h1>',
+            'h2': '<h2></h2>',
+            'html': '<!DOCTYPE html>\n<html>\n<head>\n\t<title>APWE Game</title>\n</head>\n<body>\n\n</body>\n</html>',
+            'fun': 'function start() {\n\t\n}',
+            'log': 'console.log();',
+            'div': '<div></div>'
         };
 
-        // Initialize Engine
         window.onload = () => {
-            const saved = localStorage.getItem('APWE_PROJECT');
-            if (saved) {
-                files = JSON.parse(saved);
-            } else {
-                files = { 'index.html': '' };
-            }
-            activeFile = Object.keys(files)[0] || 'index.html';
             renderTabs();
-            loadEditorContent();
-
-            // Setup Editor Autocomplete Listener
+            loadEditor();
+            
             const editor = document.getElementById('code-editor');
-            editor.addEventListener('input', handleEditorInput);
-            editor.addEventListener('keydown', handleKeyDown);
+            editor.addEventListener('input', handleTyping);
+
+            // Register Service Worker for PWA
+            if ('serviceWorker' in navigator) {
+                const swCode = `self.addEventListener('fetch', (e) => e.respondWith(fetch(e.request)));`;
+                const blob = new Blob([swCode], { type: 'application/javascript' });
+                navigator.serviceWorker.register(URL.createObjectURL(blob)).catch(()=>{});
+            }
         };
 
-        function switchView(viewName) {
+        // PWA Install Event Listener
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault();
+            deferredPrompt = e;
+            document.getElementById('install-btn').style.display = 'flex';
+        });
+
+        function installPWA() {
+            if (deferredPrompt) {
+                deferredPrompt.prompt();
+                deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+            } else {
+                showToast('Buka menu Chrome (titik 3) -> Tambahkan ke Layar Utama');
+            }
+        }
+
+        function showPage(pageId) {
             document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-            document.querySelectorAll('.view-panel').forEach(p => p.classList.remove('active'));
+            document.querySelectorAll('.view-page').forEach(p => p.classList.remove('active'));
 
             event.currentTarget.classList.add('active');
-            const panel = document.getElementById(viewName + '-panel');
-            panel.classList.add('active');
+            document.getElementById(pageId + '-page').classList.add('active');
 
-            if (viewName === 'preview') {
-                updatePreview();
-            }
+            if (pageId === 'preview') updatePreview();
         }
 
         function renderTabs() {
-            const bar = document.getElementById('file-tabs-bar');
+            const bar = document.getElementById('tab-bar');
             bar.innerHTML = '';
-            
-            Object.keys(files).forEach(filename => {
+            Object.keys(files).forEach(name => {
                 const tab = document.createElement('div');
-                tab.className = `file-tab ${filename === activeFile ? 'active' : ''}`;
-                tab.onclick = () => switchFile(filename);
-                tab.innerHTML = `
-                    <span>${filename}</span>
-                    <i class="fa-solid fa-xmark close-file" onclick="deleteFile(event, '${filename}')"></i>
-                `;
+                tab.className = `file-tab ${name === activeFile ? 'active' : ''}`;
+                tab.onclick = () => switchFile(name);
+                tab.innerHTML = `<span>${name}</span> <i class="fa-solid fa-xmark" onclick="deleteFile(event, '${name}')"></i>`;
                 bar.appendChild(tab);
             });
 
             const addBtn = document.createElement('button');
-            addBtn.className = 'add-file-btn';
+            addBtn.className = 'add-tab-btn';
             addBtn.innerHTML = '<i class="fa-solid fa-plus"></i>';
-            addBtn.onclick = () => openModal('add-file-modal');
+            addBtn.onclick = () => openModal('add-modal');
             bar.appendChild(addBtn);
         }
 
-        function switchFile(filename) {
+        function switchFile(name) {
             files[activeFile] = document.getElementById('code-editor').value;
-            activeFile = filename;
+            activeFile = name;
             renderTabs();
-            loadEditorContent();
+            loadEditor();
         }
 
-        function loadEditorContent() {
+        function loadEditor() {
             document.getElementById('code-editor').value = files[activeFile] || '';
         }
 
-        function createFile(name) {
-            if (Object.keys(files).length >= 40) {
-                showToast('Maximum file limit reached (40 files)!');
-                return;
-            }
-            if (!files[name]) {
-                files[name] = '';
-                activeFile = name;
-                renderTabs();
-                loadEditorContent();
-                closeModal('add-file-modal');
-                showToast(`Created file: ${name}`);
-            }
+        function addPresetFile(name) {
+            if (Object.keys(files).length >= 40) return showToast('Maksimal 40 file!');
+            files[name] = '';
+            switchFile(name);
+            closeModal('add-modal');
         }
 
-        function createCustomFile() {
-            const input = document.getElementById('custom-file-name');
-            const name = input.value.trim();
+        function addCustomFile() {
+            const name = document.getElementById('new-filename').value.trim();
             if (name) {
-                createFile(name);
-                input.value = '';
+                addPresetFile(name);
+                document.getElementById('new-filename').value = '';
             }
         }
 
         function deleteFile(e, name) {
             e.stopPropagation();
-            if (Object.keys(files).length <= 1) {
-                showToast("Project must contain at least 1 file!");
-                return;
-            }
+            if (Object.keys(files).length <= 1) return showToast('Minimal harus ada 1 file!');
             delete files[name];
-            if (activeFile === name) {
-                activeFile = Object.keys(files)[0];
-            }
+            if (activeFile === name) activeFile = Object.keys(files)[0];
             renderTabs();
-            loadEditorContent();
+            loadEditor();
         }
 
-        function saveProject() {
+        function saveCode() {
             files[activeFile] = document.getElementById('code-editor').value;
-            localStorage.setItem('APWE_PROJECT', JSON.stringify(files));
-            showToast('Project Auto-Saved!');
+            localStorage.setItem('APWE_FILES', JSON.stringify(files));
+            showToast('Tersimpan!');
         }
 
         function updatePreview() {
-            files[activeFile] = document.getElementById('code-editor').value;
+            saveCode();
             const iframe = document.getElementById('preview-frame');
-            let htmlContent = files['index.html'] || '<h1>No index.html found</h1>';
-
-            // Inject CSS & JS files automatically
-            let cssInject = '';
-            let jsInject = '';
-
-            Object.keys(files).forEach(name => {
-                if (name.endsWith('.css')) cssInject += `<style>${files[name]}</style>`;
-                if (name.endsWith('.js') && name !== 'index.html') jsInject += `<script>${files[name]}<\/script>`;
+            let html = files['index.html'] || '<h3>index.html kosong</h3>';
+            
+            let css = '', js = '';
+            Object.keys(files).forEach(f => {
+                if (f.endsWith('.css')) css += `<style>${files[f]}</style>`;
+                if (f.endsWith('.js') && f !== 'index.html') js += `<script>${files[f]}<\/script>`;
             });
 
-            const fullContent = htmlContent.replace('</head>', `${cssInject}</head>`).replace('</body>', `${jsInject}</body>`);
-            iframe.srcdoc = fullContent;
+            iframe.srcdoc = html.replace('</head>', css + '</head>').replace('</body>', js + '</body>');
         }
 
         /* AUTOCOMPLETE LOGIC */
-        function handleEditorInput(e) {
-            saveProject();
+        function handleTyping(e) {
+            saveCode();
             const editor = e.target;
-            const val = editor.value;
+            const text = editor.value;
             const pos = editor.selectionStart;
-            const leftText = val.slice(0, pos);
-            const wordMatch = leftText.match(/[\w\-]+$/);
+            const lastWord = text.slice(0, pos).split(/\s+/).pop().toLowerCase();
 
-            if (!wordMatch) {
-                hideAutocomplete();
-                return;
-            }
+            const box = document.getElementById('suggest-box');
+            box.innerHTML = '';
 
-            const currentWord = wordMatch[0].toLowerCase();
-            const ext = activeFile.split('.').pop();
-            const activeSnippets = snippets[ext] || snippets['html'];
-
-            const matches = activeSnippets.filter(s => s.keyword.startsWith(currentWord));
+            let matches = Object.keys(codeSnippets).filter(k => k.startsWith(lastWord) && lastWord.length > 0);
 
             if (matches.length > 0) {
-                showAutocomplete(matches, currentWord);
+                matches.forEach(m => {
+                    const div = document.createElement('div');
+                    div.className = 'suggest-item';
+                    div.innerHTML = `<span>${m}</span> <code>${codeSnippets[m]}</code>`;
+                    div.onclick = () => applySnippet(m, lastWord, codeSnippets[m]);
+                    box.appendChild(div);
+                });
+                box.style.display = 'block';
             } else {
-                hideAutocomplete();
+                box.style.display = 'none';
             }
         }
 
-        function showAutocomplete(matches, word) {
-            const popup = document.getElementById('autocomplete-popup');
-            popup.innerHTML = '';
-            matches.forEach((m, idx) => {
-                const item = document.createElement('div');
-                item.className = `suggestion-item ${idx === 0 ? 'selected' : ''}`;
-                item.innerHTML = `<span>${m.keyword}</span><span class="suggestion-type">${m.code.substring(0, 10)}...</span>`;
-                item.onclick = () => applySnippet(m, word);
-                popup.appendChild(item);
-            });
-            popup.style.display = 'block';
-            popup.style.top = '40px';
-            popup.style.left = '20px';
-        }
-
-        function hideAutocomplete() {
-            document.getElementById('autocomplete-popup').style.display = 'none';
-        }
-
-        function applySnippet(snippet, word) {
+        function applySnippet(key, word, code) {
             const editor = document.getElementById('code-editor');
             const val = editor.value;
             const pos = editor.selectionStart;
-            const startPos = pos - word.length;
-
-            editor.value = val.slice(0, startPos) + snippet.code + val.slice(pos);
-            editor.selectionStart = editor.selectionEnd = startPos + snippet.code.length - snippet.offset;
-            hideAutocomplete();
+            editor.value = val.slice(0, pos - word.length) + code + val.slice(pos);
+            document.getElementById('suggest-box').style.display = 'none';
             editor.focus();
         }
 
-        function handleKeyDown(e) {
-            if (e.key === 'Tab') {
-                const popup = document.getElementById('autocomplete-popup');
-                if (popup.style.display === 'block') {
-                    e.preventDefault();
-                    const selected = popup.querySelector('.suggestion-item.selected');
-                    if (selected) selected.click();
-                }
-            }
-        }
+        /* AI CHAT WITH LOCK */
+        function sendAI() {
+            if (aiLock) return;
+            const input = document.getElementById('chat-input');
+            const text = input.value.trim();
+            if (!text) return;
 
-        /* AI LOGIC & LOCK INPUT */
-        function sendAIMessage() {
-            if (aiThinking) return;
-
-            const input = document.getElementById('ai-input');
-            const msg = input.value.trim();
-            if (!msg) return;
-
-            appendChatMessage('user', msg);
+            appendMsg('user', text);
             input.value = '';
 
             // Lock Input
-            aiThinking = true;
+            aiLock = true;
             input.disabled = true;
-            input.placeholder = "APWE AI is thinking...";
-            document.getElementById('ai-send-btn').style.opacity = '0.5';
+            input.placeholder = "APWE AI sedang mengetik...";
 
-            // Simulate / Call Gemini AI Logic
             setTimeout(() => {
-                let aiResponse = "Here is a code snippet based on your request:\n\n";
-                if (msg.toLowerCase().includes('game') || msg.toLowerCase().includes('canvas')) {
-                    aiResponse += "```html\n<canvas id='g' width='400' height='400' style='background:#000'></canvas>\n<script>\nconst c=document.getElementById('g').getContext('2d');\nlet x=50;\nfunction loop(){\nc.clearRect(0,0,400,400);\nc.fillStyle='red';\nc.fillRect(x++,50,30,30);\nrequestAnimationFrame(loop);\n}\nloop();\n<\/script>\n```";
-                } else {
-                    aiResponse += "```javascript\n// Helper Function\nfunction createPlayer(name) {\n    return { name, score: 0 };\n}\n```";
-                }
-
-                appendChatMessage('ai', aiResponse);
-
+                let reply = "Berikut adalah contoh kodenya:\n```html\n<h1>Game Canvas</h1>\n<script>\nconsole.log('APWE Ready');\n<\/script>\n```";
+                appendMsg('ai', reply);
+                
                 // Unlock Input
-                aiThinking = false;
+                aiLock = false;
                 input.disabled = false;
-                input.placeholder = "Type your coding request...";
-                document.getElementById('ai-send-btn').style.opacity = '1';
-            }, 1200);
+                input.placeholder = "Tulis instruksi coding...";
+            }, 1000);
         }
 
-        function appendChatMessage(role, text) {
+        function appendMsg(role, text) {
             const box = document.getElementById('chat-box');
-            const msgDiv = document.createElement('div');
-            msgDiv.className = `chat-msg ${role}`;
+            const div = document.createElement('div');
+            div.className = `msg ${role}`;
 
             if (text.includes('```')) {
-                const parts = text.split(/```/);
-                msgDiv.appendChild(document.createTextNode(parts[0]));
+                const parts = text.split('```');
+                div.appendChild(document.createTextNode(parts[0]));
+                
+                const codeContent = parts[1].replace(/^(html|javascript|css)/, '').trim();
+                const codeDiv = document.createElement('div');
+                codeDiv.className = 'msg-code';
+                codeDiv.innerText = codeContent;
 
-                const codeContent = parts[1].replace(/^(html|javascript|css|python|lua)/, '');
-                const codeHeader = document.createElement('div');
-                codeHeader.className = 'code-block-header';
-                codeHeader.innerHTML = `<span>CODE</span><button class="copy-btn" onclick="copyToClipboard(\`${codeContent.trim()}\`)">Copy Code</button>`;
-
-                const pre = document.createElement('pre');
-                pre.style.background = '#000';
-                pre.style.padding = '10px';
-                pre.style.borderRadius = '4px';
-                pre.style.overflowX = 'auto';
-                pre.innerText = codeContent.trim();
-
-                msgDiv.appendChild(codeHeader);
-                msgDiv.appendChild(pre);
+                const copyBtn = document.createElement('button');
+                copyBtn.className = 'copy-code-btn';
+                copyBtn.innerText = 'Copy';
+                copyBtn.onclick = () => {
+                    navigator.clipboard.writeText(codeContent);
+                    showToast('Kode berhasil di-copy!');
+                };
+                codeDiv.appendChild(copyBtn);
+                div.appendChild(codeDiv);
             } else {
-                msgDiv.innerText = text;
+                div.innerText = text;
             }
 
-            box.appendChild(msgDiv);
+            box.appendChild(div);
             box.scrollTop = box.scrollHeight;
         }
 
-        function copyToClipboard(text) {
-            navigator.clipboard.writeText(text);
-            showToast('Code copied to clipboard!');
+        function requestDevicePermissions() {
+            if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+                    .then(() => showToast('Izin Kamera/Mic Diberikan!'))
+                    .catch(() => showToast('Izin Ditolak Pengguna'));
+            }
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition(
+                    () => showToast('Izin GPS Diberikan!'),
+                    () => {}
+                );
+            }
+            closeModal('settings-modal');
         }
 
-        /* DOWNLOAD APP & DEPLOY */
-        function downloadApp() {
-            files[activeFile] = document.getElementById('code-editor').value;
-            const content = files['index.html'] || '';
-            const blob = new Blob([content], { type: 'text/html' });
+        function downloadProject() {
+            saveCode();
+            const blob = new Blob([files['index.html'] || ''], { type: 'text/html' });
             const a = document.createElement('a');
             a.href = URL.createObjectURL(blob);
             a.download = 'APWE_App.html';
             a.click();
-            showToast('App HTML File Downloaded!');
-        }
-
-        function executeDeploy() {
-            const token = document.getElementById('deploy-token').value;
-            if (!token) {
-                showToast('Please enter a valid Token!');
-                return;
-            }
-            showToast('Deploying to platform...');
-            setTimeout(() => {
-                closeModal('deploy-modal');
-                showToast('Website Successfully Deployed!');
-            }, 1500);
-        }
-
-        function changeTheme(theme) {
-            document.body.className = `theme-${theme}`;
+            showToast('File HTML Diunduh!');
         }
 
         function openModal(id) { document.getElementById(id).style.display = 'flex'; }
         function closeModal(id) { document.getElementById(id).style.display = 'none'; }
         function showToast(msg) {
-            const toast = document.getElementById('toast');
-            toast.innerText = msg;
-            toast.style.display = 'block';
-            setTimeout(() => toast.style.display = 'none', 2500);
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.display = 'block';
+            setTimeout(() => t.style.display = 'none', 2000);
         }
     </script>
 </body>
